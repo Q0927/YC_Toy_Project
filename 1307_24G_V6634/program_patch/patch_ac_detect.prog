@@ -1,0 +1,103 @@
+
+
+ifdef AC_DETECT
+ali_mesh_ac_detecting_polling:
+
+	arg AC_DETECT_GPIO, temp
+	call gpio_get_bit   // if high level: true = 0
+	nbranch ali_mesh_ac_detecting_reset_check, true
+	arg light_ac_detecting_timer, queue
+	call timer_check   //未超时blank 为0
+	nrtn blank
+	arg light_ac_detecting_timer, queue
+	setarg AC_DETECT_TIME_OUT  
+	call timer_init
+
+	fetch 1, mem_ac_detecting_low_level_cnt
+	pincrease 1
+	store 1,mem_ac_detecting_low_level_cnt
+
+	sub pdata, AC_DETECT_DEADLINE, null
+	rtn positive
+	fetch 1, mem_ac_enter_lpm_enable  // 1:enable, 0:disable
+	rtn blank
+	jam 0, mem_ac_enter_lpm_enable
+ali_mesh_ac_detecting_no_power:
+	call ali_mesh_ac_detecting_before_no_power_cb
+	call ali_mesh_ac_detecting_re_detect_flag_set
+//AC检测进入休眠
+ali_mesh_ac_detecting_enter_lpm:
+	setarg 0
+	store 8, mem_gpio_wakeup_low
+	fetch 4, mem_gpio_wakeup_high
+	set1 AC_DETECT_GPIO, pdata
+	store 4, mem_gpio_wakeup_high
+
+	arg -1, temp   //
+	branch lpm_sleep
+
+ali_mesh_ac_detecting_reset_check:
+	jam 0,mem_ac_detecting_low_level_cnt
+	jam 1,mem_ac_enter_lpm_enable    
+	rtn
+
+ali_mesh_ac_detecting_re_detect_flag_set:
+	jam AC_DETECT_DEADLINE, mem_ac_re_detect_flag
+	rtn
+
+ali_mesh_ac_detecting_lpm_wake_check_re_detect:
+	fetch 1, mem_ac_re_detect_flag
+	sub pdata,AC_DETECT_DEADLINE, null
+	ncall ali_mesh_ac_detecting_re_detect_flag_set, positive
+	pincrease -1
+	store 1,mem_ac_re_detect_flag
+	branch ali_mesh_ac_detecting_enter_lpm
+
+
+/*AC检测GPIO配置为输入状态*/
+ali_mesh_ac_detecting_init:
+	call ali_mesh_ac_detecting_init_peripherals
+	fetch 1, mem_ac_re_detect_flag
+	rtn blank
+	branch ali_mesh_ac_detecting_lpm_wake_check_re_detect
+
+ali_mesh_ac_detecting_init_peripherals:
+	arg core_gpio_conf, contw
+	add contw, AC_DETECT_GPIO, contw
+	setarg 0
+	istore 1, contw
+	rtn
+
+
+/*
+	AC 检测需要实现的函数
+	检测到设备没电需要的操作，比如关灯
+*/
+ali_mesh_ac_detecting_before_no_power_cb:
+ifdef GENERIC_LIGHT_DRIVER
+	call p_peripherals_w_output_low
+	call p_peripherals_y_output_low
+endif	
+p_enter_lpm_gpio_config:
+    arg 19, loopcnt
+    jam 0, mem_light_lpm_gpio_config_io_temp
+p_drop_down_unused_io_loopcnt:
+    fetcht 1, mem_light_lpm_gpio_config_io_temp
+    copy temp, queue
+    fetch 4, mem_light_lpm_gpio_config_flag    //为1不处理（说明IO被使用）
+    qisolate1 pdata
+    branch p_drop_down_unused_io_loopcnt_no_drop_down, true
+
+    or temp, 0x80, temp
+    call gpio_config_input
+ 
+p_drop_down_unused_io_loopcnt_no_drop_down:
+   fetch 1, mem_light_lpm_gpio_config_io_temp
+   pincrease 1
+   store 1, mem_light_lpm_gpio_config_io_temp
+   loop p_drop_down_unused_io_loopcnt
+   rtn	
+
+endif
+
+

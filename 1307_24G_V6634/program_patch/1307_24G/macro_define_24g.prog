@@ -1,0 +1,18 @@
+
+define P_ADC_ENABLE
+//define P_TIMER_DEMO
+
+//define P_LPM
+//define FCC_AUTH
+
+define G24_ACK_DISABLE
+define G24_TX
+define UART_INIT
+define DBG_LOG_TX
+
+
+define G24_ACK_DISABLE
+define G24_RX
+//define UART_INIT
+//define DBG_LOG_RX
+

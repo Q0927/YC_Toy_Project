@@ -1,0 +1,73 @@
+
+
+p_app_init_ext:
+	
+//******************************************************//
+	setarg p_idle_process
+	store 2,mem_cb_idle_process
+
+	setarg p_cb_event_timer
+	store 2,mem_cb_event_timer
+
+ifdef P_BLE_WRITE
+	//Att write callback function
+	setarg p_ble_receive_data
+	store 2,mem_cb_att_write
+endif	
+
+	//BLE evt handle callback
+	setarg p_process_bb_event 
+	store 2,mem_cb_bb_event_process
+//******************************************************//	
+	call le_modified_name
+	call p_le_param_init
+	branch  queue_init
+
+p_le_param_init:
+	//////////////////MTU/////////////
+	jam 0x17,mem_le_local_mtu
+	////////////////justwork/////////
+	setarg 0x1b
+ 	store 2,mem_le_pairing_handle
+ 	call le_set_config_fixed_ltk
+	call le_set_fixed_ltk
+	call le_set_justwork
+	branch le_set_config_read_authentication
+
+//p_add_mac_to_local_name:
+//	rtn wake
+//	fetch 1, mem_le_name_len
+//	arg mem_le_name_len+1, contw
+//	iadd contw, regb
+//	add pdata, 16, pdata
+//	store 1, mem_le_name_len
+
+//	arg 6, loopcnt
+//	arg mem_le_lap+5, rega   //big endian
+//	copy regb, contw
+//p_add_mac_to_local_name_loop:
+//	ifetcht 1, rega
+//	and temp, 0xf0, pdata
+//	rshift4 pdata, pdata
+//	call p_convert_hex_to_ascii
+//	
+//	istore 1, contw
+//	and temp, 0x0f, pdata
+//	call p_convert_hex_to_ascii
+//	istore 1, contw
+//	increase -1, rega
+//	loop p_add_mac_to_local_name_loop
+//	rtn
+
+//p_convert_hex_to_ascii:
+//	sub pdata, 9, null
+//	branch p_convert_hex_to_ascii_0_9, positive
+//p_convert_hex_to_ascii_a_f:
+//	add pdata, 0x37, pdata    //0x41:大写字母A的ASCII码
+//	rtn
+
+//p_convert_hex_to_ascii_0_9:
+//	add pdata, 0x30, pdata    //0x30:数字0的ASCII码
+//	rtn
+		
+

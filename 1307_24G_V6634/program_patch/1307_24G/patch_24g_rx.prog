@@ -1,0 +1,52 @@
+
+
+ifdef G24_RX
+/*
+output:
+mem_24g_rxbuf
+*/
+g24_sim_rx:
+	fetch 1, mem_le_24g_rx_enable
+	rtn blank
+	set1 mark_24g_rxmode,mark
+	setarg 0x7530   //2.5ms
+	store 2, mem_24g_rx_window
+	jam 1,mem_24g_ackpayload_enable
+	
+	fetch 1,mem_24g_rx_phy
+	call le_enable_phy_by_pdata
+	call g24_syncword_crc8
+	call g24_receive_transmit_ack+1
+	call g24_read_len_pid_crc
+	call g24_end_of_packet
+	nrtn user3
+g24_sim_rx_success:	
+	jam 1, mem_le_24g_rx_recv_flag
+	rtn
+
+p_cb_24g_ackpayload:
+	jam LEN_OF_ACK_PAYLOAD, mem_24g_datalen
+	setarg 0x111111
+	store 3, mem_24g_txbuf
+	rtn
+
+
+g24_rx_parse:
+	fetch 1, mem_le_24g_rx_recv_flag
+	rtn blank
+	jam 0, mem_le_24g_rx_recv_flag
+ifdef DBG_LOG
+	call p_24g_rx_log
+endif
+	rtn
+
+ifdef DBG_LOG
+p_24g_rx_log:
+	arg mem_24g_rxbuf+2, rega
+	fetch 1, mem_24g_rxbuf+1
+	rshift3 pdata, loopcnt
+	arg LOGGING_TYPE_24G_RX, regb
+	branch logging_tx_info
+endif
+endif
+

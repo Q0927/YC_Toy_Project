@@ -1,0 +1,271 @@
+
+
+
+ifdef FCC_AUTH
+
+
+/*
+可以在该函数中写逻辑来更改需要测试的功能
+*/
+p_fcc_para_config_cb:
+	
+	rtn
+
+p_fcc_auth_config:
+	setarg p_fcc_para_config_cb
+	store 2, mem_fcc_config_cb
+
+	//tx data
+	jam 23, mem_fcc_ch
+	jam FCC_TX, mem_fcc_txrx
+	jam FCC_DATA, mem_fcc_data
+	jam TX_POWER_0DB, mem_fcc_tx_power
+	
+	jam FCC_DATA_RATE_1Mbps, mem_fcc_mod
+	jam FCC_BT_MODE, mem_fcc_btble
+	jam FCC_LEN_DH1, mem_fcc_data_length
+	jam FCC_FIXED_FREQ, mem_fcc_hop
+	call pp_pn9
+	branch p_fcc_auth_procedures
+
+
+p_fcc_auth_procedures:
+	fetch 2, mem_fcc_config_cb
+	call callback_func
+	
+	fetch FCC_PARA_LEN,mem_fcc_param
+	store FCC_PARA_LEN,mem_fcc_param_new
+	fetch 1, mem_fcc_tx_power
+	store 1, mem_tx_power
+	
+	fetch 1, mem_fcc_txrx
+	beq FCC_TX, p_fcc_auth_tx_start
+	beq FCC_RX, p_fcc_auth_rx_start
+p_fcc_auth_tx_start:
+	fetcht 1,mem_fcc_ch
+	fetch 1,mem_fcc_btble
+	beq FCC_BLE_MODE,p_fcc_auth_ble_tx_on
+	beq FCC_BT_MODE,p_fcc_auth_bt_tx_on
+p_fcc_auth_ble_tx_on:
+	call p_set_sync_on
+	call set_freq_tx
+	//disable enable_white
+	call p_le_enable
+	set1 TXGFSK,radio_ctrl
+	enable encode_fec0
+	enable is_tx
+	disable is_rx
+	call le_wait_tx
+	fetch 1,mem_fcc_data
+	store 1,core_tx_test_mode
+	branch p_fcc_auth_tx_data
+p_fcc_auth_tx_data:
+	fetch 1,mem_fcc_mod
+	beq FCC_DATA_RATE_1Mbps,p_calculate_GFSK_modulation_length
+p_calculate_GFSK_modulation_length:	
+	fetch 1,mem_fcc_data_length
+	beq FCC_LEN_DH1,p_calculate_gfsk_modulation_length_dh1
+	beq FCC_LEN_DH3,p_calculate_gfsk_modulation_length_dh3
+	beq FCC_LEN_DH5,p_calculate_gfsk_modulation_length_dh5
+p_calculate_gfsk_modulation_length_dh1:
+	arg 53,loopcnt
+	arg mem_pn9,contr
+	branch p_pnloop_stable
+p_calculate_gfsk_modulation_length_dh3:
+	arg 203,loopcnt
+	arg mem_pn9,contr
+	branch p_pnloop_stable
+p_calculate_gfsk_modulation_length_dh5:
+	arg 354,loopcnt
+	arg mem_pn9,contr
+	branch p_pnloop_stable
+
+
+p_fcc_auth_bt_tx_on:
+	//call p_test_ble_bt_rx_off	//close rx
+	call p_set_sync_on
+	call set_freq_tx
+	disable enable_white
+	enable encode_fec0
+	enable is_tx
+//call ice_break
+	fetcht 1,mem_fcc_mod
+	copy temp,radio_ctrl
+	fetch 1,mem_fcc_data
+	store 1,core_tx_test_mode
+	beq 0,p_fcc_auth_tx_data	
+p_test_tx_carrier_loop:
+	fetch 1,mem_fcc_data_length
+	copy pdata,loopcnt
+	arg mem_pn9,contr
+p_pnloop_carrier:
+	ifetch 1,contr
+	inject mod,8
+	loop p_pnloop_carrier
+	
+	fetch 2, mem_fcc_config_cb
+	call callback_func
+	fetch FCC_PARA_LEN,mem_fcc_param
+	fetcht FCC_PARA_LEN,mem_fcc_param_new
+	isub temp,null
+	branch p_test_tx_carrier_loop,zero
+	branch p_fcc_auth_procedures
+
+pp_pn9:
+	arg 1022,loopcnt
+ 	arg mem_pn9,contw
+  	setarg 0x1ff
+    	force 0,regb
+pp_pn9_loop:    
+    rshift3 pdata,rega
+    rshift rega,rega
+    ixor rega,rega
+    isolate1 0,rega
+    setflag true,9,pdata
+    rshift temp,temp
+    isolate1 0,pdata
+    setflag true,7,temp
+    rshift pdata,pdata
+    increase 1,regb
+    compare 0,regb,0x7
+    nbranch pp_pn9_loop,true
+    //copy temp,pdata
+    istoret 1,contw
+ //   inject mod,8
+    loop pp_pn9_loop
+    rtn
+
+
+
+
+p_le_enable:
+	enable le
+	set0 mark_ble_lr,mark
+	jam 0x03,0x8901
+	jam 0x84,0x8920
+	jam 0xa7,0x8925
+	jam 0x03,0x8930
+	//jam 0x58,0x8933
+	//jam 0x0a,0x8934
+	jam 0x40,0x8937
+    jam 0x85,0x8a6d
+	jam 0x89,core_rx_bq_cfg0
+	fetch 1,mem_le_mode
+	rtnbit1 mark_ble_2M
+	jam 0x01,0x8901
+	jam 0x80,0x8920
+    jam 0x05,0x8a6d
+	jam 0x09,core_rx_bq_cfg0
+//	rtnbit0 mode_lr
+	set1 mark_ble_lr,mark
+	jam 0x05,0x8901
+	jam 0x24,0x8930
+    jam 0x0a,0x8934
+    	rtn
+
+p_fcc_shutdown_radio:
+	force 0x08,radio_ctrl
+	force 0,radio_ctrl
+	disable is_rx
+	disable is_tx
+	pulse packet_end
+	jam 0x5,modem_en
+	nop 2
+	jam 0x0,modem_en
+	call p_set_sync_on
+	jam 0,core_syn_en
+	jam 0x10,core_rf_ldo_en0
+	jam 0,core_rf_ldo_en1	
+	rtn		
+p_test_ble_bt_tx_off:
+	branch p_fcc_shutdown_radio
+p_pnloop_stable:
+	ifetch 1,contr
+	inject mod,8
+	loop p_pnloop_stable
+	call p_test_ble_bt_tx_off
+	enable swfine
+	arg 0x350,stop_watch
+p_stable_stop:
+	branch p_fcc_auth_procedures,timeout
+
+	fetch 2, mem_fcc_config_cb
+	call callback_func
+	fetch FCC_PARA_LEN,mem_fcc_param
+	fetcht FCC_PARA_LEN,mem_fcc_param_new
+	isub temp,null
+	branch p_stable_stop,zero
+	call p_test_ble_bt_tx_off
+	branch p_fcc_auth_procedures
+
+p_set_sync_on:
+	jam 0x5,modem_en
+	nop 2
+	jam 0x0,modem_en					/* if called from tx or rx */
+	jam 0xaa,core_rf_ldo_cfg4
+	jam 0xaa,core_rf_ldo_cfg5
+	jam 0x15,core_rf_ldo_cfg6
+	jam 0xf8,core_rf_ldo_en0    //rom 0x78------ldo en
+
+	//rom
+//	fetch 1,core_clkpll_cfg6
+//	set1 7,pdata
+//	store 1,core_clkpll_cfg6
+	
+	jam 4,core_rf_ldo_en1
+	nop 120
+	jam 0x7a,core_syn_en
+	jam 0,core_rx_en0
+	jam 0,core_rx_en1
+	jam 0,core_tx_en0
+	jam 0,core_tx_en1
+	jam 0x2a,core_rf_ldo_cfg5
+	jam 0x78,core_rf_ldo_en0
+	//rom
+//	fetch 1,core_clkpll_cfg6
+//	set0 7,pdata
+//	store 1,core_clkpll_cfg6	
+	jam 0,core_syn_cal_ctrl
+	rtn
+
+
+p_fcc_auth_rx_start:
+	fetcht 1,mem_fcc_ch
+	fetch 1,mem_fcc_btble
+	compare 0x01,pdata,0x0f
+	call p_test_bt_rx_on,true
+	ncall p_test_ble_rx_on,true
+p_test_rx_loop:
+//	call hci_rx_packet
+//	call p_interface_for_usb_cmd
+	fetch 2, mem_fcc_config_cb
+	call callback_func
+	fetch FCC_PARA_LEN,mem_fcc_param
+	fetcht FCC_PARA_LEN,mem_fcc_param_new
+	isub temp,null
+	branch p_test_rx_loop,zero
+	branch p_fcc_auth_procedures
+p_test_bt_rx_on:
+	call p_test_ble_bt_tx_off	//close tx
+	call set_freq_rx
+	fetcht 1,mem_fcc_mod   //.....
+	and temp,7,radio_ctrl
+	branch start_receiver
+p_test_ble_rx_on:
+	call p_test_ble_bt_tx_off	//close tx
+	call set_freq_rx
+	setarg param_pll_setup
+	call sleep
+	branch rf_rx_enable
+endif
+
+
+
+
+
+
+
+
+
+
+

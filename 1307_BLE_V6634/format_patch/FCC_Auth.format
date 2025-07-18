@@ -1,0 +1,83 @@
+
+ifdef FCC_AUTH	
+
+memalloc ali_mesh(
+	1022 mem_pn9
+	0 mem_pn9_end
+
+
+	0 mem_fcc_param_new	
+	1 mem_fcc_ch_new   
+	1 mem_fcc_mod_new 
+	1 mem_fcc_txrx_new 
+	1 mem_fcc_btble_new  
+	1 mem_fcc_data_new  
+	1 mem_fcc_data_length_new    
+	1 mem_fcc_hop_new    
+	1 mem_fcc_tx_power_new
+
+	0 mem_fcc_param
+	1 mem_fcc_ch                    /*frequence set: default:0x00(2402Mhz); frequence = 2402MHz + mem_fcc_ch*/
+	1 mem_fcc_mod                 /*data rate:default:0x01(1Mbps) */
+	1 mem_fcc_txrx                  /*tx rx mode select:tx: 01; rx:02*/
+	1 mem_fcc_btble                /*BT and BLE select: BT3.0:01; BLE:02*/
+	1 mem_fcc_data                 /*carrier: 0x22; data: 0*/
+	1 mem_fcc_data_length     /*DH1:0x19; DH3:0x78; DH5:0xf0*/
+	1 mem_fcc_hop                  /*fixed freq:0x02; hop freq:0x01*/
+	1 mem_fcc_tx_power         /*ͬmem_tx_power*/
+
+	2 mem_fcc_config_cb
+
+)
+
+(
+8 FCC_PARA_LEN
+)
+
+//data rate
+(
+0x01 FCC_DATA_RATE_1Mbps
+)
+//tx rx mode select
+(
+0x01 FCC_TX
+0x02 FCC_RX
+)
+//BT or BLE
+(
+0x02 FCC_BLE_MODE
+0x01 FCC_BT_MODE
+)
+
+//carrier or data
+(
+0x22 FCC_CARRIER
+0 FCC_DATA
+)
+
+//data length
+(
+0x19 FCC_LEN_DH1
+0x78 FCC_LEN_DH3
+0xf0 FCC_LEN_DH5
+)
+
+//fixed or hop frequence
+(
+0x02 FCC_FIXED_FREQ
+0x01 FCC_HOP_FREQ
+)
+(
+0x890d core_tx_test_mode
+)
+endif
+
+
+
+
+
+
+
+
+
+

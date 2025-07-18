@@ -1,0 +1,143 @@
+
+ifdef GENERIC_LIGHT_DRIVER
+
+/*
+	功能:
+	负责调节PWM
+	输入:
+	mem_light_W_aim_pcnt:本次调光结束时，W的目标cnt.
+	mem_light_Y_aim_pcnt: 本次调光结束时，Y的目标cnt.
+	mem_light_mix_change_delay_time:调光步进之间的delay, 单位为3.5us.
+*/
+p_drive_light_gradual_change:
+	setarg 0
+	set1 PWM_W_ENABLE_BIT,pdata
+	set1 PWM_Y_ENABLE_BIT,pdata
+	store 1,mem_light_drive_change_flag
+p_drive_light_gradual_change_loop:
+	call p_drive_light_gradual_change_w
+	call p_drive_light_gradual_change_y
+	fetch 2, mem_light_mix_change_delay_time
+	call delay
+ifdef AC_DETECT
+	call ali_mesh_ac_detecting_polling
+endif
+	fetch 1,mem_light_drive_change_flag
+	nbranch p_drive_light_gradual_change_loop,blank
+	rtn
+
+p_drive_light_gradual_change_y:
+	 arg PWM_Y_ENABLE_BIT, queue
+	 arg LIGHT_Y_PCNT, regc
+	 arg mem_light_Y_aim_pcnt, regb
+	 arg LIGHT_Y_GPIO, alarm
+	 branch p_drive_light_gradual_change_common
+
+p_drive_light_gradual_change_w:
+	 arg PWM_W_ENABLE_BIT,queue
+	 arg LIGHT_W_PCNT, regc
+	 arg mem_light_W_aim_pcnt,regb
+	 arg LIGHT_W_GPIO, alarm
+	branch p_drive_light_gradual_change_common
+
+
+/*
+	灯驱动缓慢变化的函数
+*/
+p_drive_light_gradual_change_common:
+	fetch 1,mem_light_drive_change_flag
+	qisolate1 pdata
+	nrtn true
+	ifetch 2,regc
+	ifetcht 2,regb
+	isub temp,null
+	branch p_drive_light_gradual_change_finish,zero
+	branch p_drive_light_gradual_change_decrease,positive
+p_common_light_gradual_change_increase:
+	 pincrease LIGHT_GRADUAL_STEP_WY 
+	 isub temp,null
+	 nbranch p_drive_light_gradual_change_update_pwm, positive
+	 ifetch 2, regb    //if current pcnt bigger than target pcnt, pdata = target pcnt
+	 branch p_drive_light_gradual_change_update_pwm
+
+p_drive_light_gradual_change_decrease:
+	 arg LIGHT_GRADUAL_STEP_WY,loopcnt
+	 isub loopcnt,pdata
+	 isub temp,null
+	 branch p_drive_light_gradual_change_update_pwm, positive
+	 ifetch 2, regb    //if current pcnt less than target pcnt, pdata = target pcnt
+	//pdata: current pcnt 
+p_drive_light_gradual_change_update_pwm:
+	 istore 2,regc
+	 iforce temp
+	 setarg LIGHT_PWM_WY_FREQ
+	 isub temp,pdata
+	 increase 2, regc
+	 istore 2, regc
+
+	 fetch 1,core_pwm_en
+	 qisolate1 pdata
+	 rtn true
+	 lshift8 queue, pdata
+	 ior alarm, pdata
+p_light_pwm_enable:
+	enable user
+	rshift8 pdata, queue
+	call pwm_gpio_set+1
+	fetch 1,core_pwm_en
+   	qsetflag user,pdata
+   	store 1,core_pwm_en
+	rtn
+	 
+p_drive_light_gradual_change_finish:
+	 fetch 1,mem_light_drive_change_flag
+	 qset0 pdata
+	 store 1,mem_light_drive_change_flag
+	 ifetch 2,regb
+	 branch p_peripherals_light_gradual_change_finish_set_low, blank
+	 arg LIGHT_PWM_WY_FREQ, temp
+	 isub temp, null
+	 nrtn zero
+	 branch p_peripherals_light_gradual_change_finish_set_high
+
+
+p_peripherals_light_gradual_change_finish_set_high:
+	enable user
+	branch p_peripherals_light_gradual_change_finish_set_level_common
+
+
+p_peripherals_light_gradual_change_finish_set_low: 
+	disable user
+p_peripherals_light_gradual_change_finish_set_level_common: 
+	copy alarm, pdata
+	branch  p_peripherals_light_set_pwm_pin_high_low_state
+
+
+p_peripherals_w_output_low:
+	setarg LIGHT_W_GPIO
+	arg PWM_W_ENABLE_BIT, queue
+	disable user
+	branch p_peripherals_light_set_pwm_pin_high_low_state  
+
+
+p_peripherals_y_output_low:
+	setarg LIGHT_Y_GPIO
+	arg PWM_Y_ENABLE_BIT, queue	
+	disable user
+	branch p_peripherals_light_set_pwm_pin_high_low_state 
+/*
+input: 
+ pdata: gpio num
+ queue: pwm channel
+ user 0:low 1:high
+*/
+p_peripherals_light_set_pwm_pin_high_low_state:
+	rtn blank
+	iforce rega
+	nsetflag user,7,pdata
+	copy pdata,temp
+	call p_gpio_config_output
+	branch p_pwm_disable
+
+endif
+

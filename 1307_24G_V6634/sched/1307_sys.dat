@@ -1,0 +1,48 @@
+
+mem_gpio_wakeup_low:00 00 08 00 00 00 00 00
+mem_lpm_config:88 1f ca	#4khz
+mem_lpm_xtalcnt:70 3f 0c 33 03
+#mem_lpm_xtalcnt:70 3f 0c 37 07        #enable 0x5000~0x5fff
+mem_lpm_ctrl3_aon_vsel:9d 10 24
+mem_lpm_hibernate_switch:00
+
+mem_fcomp_div:18
+
+mem_rc_cal:d3
+mem_rf_ldo_cfg1:00
+mem_syn_afc_cfg1:29
+mem_dig_aon_vsel:00	#bit5-4;00:1.2V;01:1.08V;02:0.96V;03:0.84V
+
+mem_gain_fix:ff	#00:soft agc; ff:hw agc
+mem_gain_table:88 66 44
+mem_gain_second_agc_en:00	#hw agc: 0:second agc disable
+
+mem_adc_wait_count:0c
+
+
+mem_iscan_window:24 00
+mem_iscan_interval:00 02
+mem_pscan_window:24 00
+mem_pscan_interval:00 02
+
+mem_inq_window:20 00
+mem_page_window:20 00
+mem_page_to:00 20
+mem_rx_window_init:80 04
+mem_rx_window_sniff:00 0c
+
+
+mem_lmp_version:09 0e 05 04 00
+mem_seqi:7f
+
+
+mem_rf_init_data:
+ff
+mem_rf_init_ptr:mem_rf_init_data
+
+
+#bit7:0 means disable rf debug function
+mem_rf_debug_rx_gpio:06
+mem_rf_debug_tx_gpio:07
+
+

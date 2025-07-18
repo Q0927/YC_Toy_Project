@@ -1,0 +1,14 @@
+
+/*
+此文件不用来申请变量
+*/
+memalloc ali_mesh(
+    0 mem_memalloc_end
+)
+
+
+
+
+
+
+

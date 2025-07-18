@@ -1,0 +1,126 @@
+
+ifdef GENERIC_LIGHT_DRIVER
+memalloc ali_mesh(
+
+	1 mem_light_drive_change_flag
+	//灯白光的模板占空比*LIGHT_PWM_WY_MAX_PCNT
+	2 mem_light_W_aim_pcnt
+	//灯黄光的模板占空比*LIGHT_PWM_WY_MAX_PCNT
+	2 mem_light_Y_aim_pcnt
+	//灯的调整时间，控制PCNT增加的速度
+	2 mem_light_mix_change_delay_time
+
+	1 mem_light_state
+	1 mem_light_brightness
+	1 mem_light_color_temperature
+        //快速上下电检测
+        1 mem_light_change_light_mode_enable
+        //模式功能
+        1 mem_light_current_mode_index
+)
+
+endif
+
+
+
+
+(
+	//speed
+0x9f LIGHT_SPEED_LIGHTEN_SINGLE_STEP
+0x9f LIGHT_SPEED_DARKEN_SINGLE_STEP
+0x9f LIGHT_SPEED_TO_W_SINGLE_STEP
+0x9f LIGHT_SPEED_TO_Y_SINGLE_STEP
+0x200 LIGHT_SPEED_CHANGE_SINGLE_STEP
+0x0200 LIGHT_SPEED_CHANGE_SINGLE_PWM_SINGLE_STEP
+0x30 LIGHT_SPEED_MESH_CHANGE
+0x30 LIGHT_SPEED_MESH_CHANGE_LGHTNSS
+0x30 LIGHT_SPEED_COLOR_SWITCH
+0x30 LIGHT_SPEED_LGTNSS_SWITCH
+0x20 LIGHT_SPEED_TO_NL
+0x60 LIGHT_SPEED_APP_CHANGE
+0x0e LIGHT_SPEED_BLINK
+0x0e LIGHT_SPEED_POWER_ON
+0x01 LIGHT_SPEED_REMOTER_TURN_ON
+0x01 LIGHT_SPEED_REMOTER_TURN_OFF
+)
+
+/* 默认模式定义 */
+(//mem_light_current_mode_index
+	0 DEFAULT_LIGHT_MODE_00  /* w:100% y:100%  */
+	1 DEFAULT_LIGHT_MODE_01  /* w:50% y:50%  */
+	2 DEFAULT_LIGHT_MODE_02  /* nl */
+	3 DEFAULT_LIGHT_MODE_03  /*  */
+	4 DEFAULT_LIGHT_MODE_04  /*  */
+	5 DEFAULT_LIGHT_MODE_05  /*  */
+	6 DEFAULT_LIGHT_MODE_06  /*  */
+	7 DEFAULT_LIGHT_MODE_07  /*  */
+)
+
+(
+3 DEFAULT_MODES
+)
+
+/* default mode 0*/
+(
+	100 LIGHT_MODE_0_LIGHTNESS
+	50 LIGHT_MODE_0_COLOR_TEMPERATURE
+)
+
+/* default mode 1*/
+(
+	100 LIGHT_MODE_1_LIGHTNESS
+	100 LIGHT_MODE_1_COLOR_TEMPERATURE
+)
+
+/* default mode 2*/
+(
+	100 LIGHT_MODE_2_LIGHTNESS
+	0 LIGHT_MODE_2_COLOR_TEMPERATURE
+)
+
+/* default mode 3*/
+(
+	10 LIGHT_MODE_3_LIGHTNESS
+	50 LIGHT_MODE_3_COLOR_TEMPERATURE
+)
+
+
+
+(
+//c+w最大值
+6000 LIGHT_PWM_WY_COUNT
+
+2 LIGHT_GRADUAL_STEP_WY
+6000 LIGHT_PWM_WY_FREQ
+6000 LIGHT_PWM_WY_MAX_PCNT
+6000 LIGHT_PWM_W_OR_Y_SINGLE_MAX_PCNT
+10 LIGHT_SEGMENT
+5 LIGHT_NIGHT		/* 小夜灯亮度 百分比 */
+)
+
+
+
+(
+//1319
+//W: pin6, gpio10
+//Y: pin15, gpio04
+
+
+ifdef PIN6_IS_PWM_W
+	10 LIGHT_W_GPIO
+	0 PWM_W_ENABLE_BIT
+	0x80a0 LIGHT_W_PCNT
+	0x80a2 LIGHT_W_NCNT
+endif
+
+ifdef PIN15_IS_PWM_Y
+	4 LIGHT_Y_GPIO
+	1 PWM_Y_ENABLE_BIT
+	0x80a4 LIGHT_Y_PCNT
+	0x80a6 LIGHT_Y_NCNT
+endif
+
+)
+
+
+

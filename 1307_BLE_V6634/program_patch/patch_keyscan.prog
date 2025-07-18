@@ -1,0 +1,194 @@
+
+
+
+ifdef P_KEYSCAN
+/*
+按键检测
+*/
+p_kscan_init:
+	call p_kscan_col_state_init
+p_kscan_row_state_init:  //pull up, input
+	arg mem_kscan_row_gpio_pin, rega
+	fetch 1, mem_kscan_row_nums
+	rtn blank
+	iforce loopcnt
+p_kscan_input_pull_up_loop:	
+	ifetcht 1, rega
+	call gpio_config_input
+	increase 1, rega
+	loop p_kscan_input_pull_up_loop
+	nop 1200	
+	rtn
+
+p_kscan_recover_col_output_low:	
+p_kscan_col_state_init:  //output low
+	arg mem_kscan_col_gpio_pin, rega
+	fetch 1, mem_kscan_col_nums
+	rtn blank	
+	iforce loopcnt
+p_kscan_output_low_loop:
+	ifetcht 1, rega
+	or temp, 0x80, temp
+	call p_gpio_config_output
+	increase 1, rega
+	loop p_kscan_output_low_loop
+	nop 1200
+	rtn
+
+	
+/**************************************************
+gpio数可配置
+gpio pin脚可配置
+行列可配置，最大8*8
+
+mem_kscan_row_nums:行数
+mem_kscan_col_nums:列数
+mem_kscan_col_gpio_pin:列GPIO
+mem_kscan_row_gpio_pin:行GPIO
+mem_kscan_record_keypress: 有按键按下时，对应按键编号的bit置1
+**************************************************/
+p_kscan:
+	fetch 1, mem_kscan_col_nums
+	fetcht 1, mem_kscan_row_nums
+	iadd temp, pdata
+	rtn blank	
+	setarg 0
+	store 8, mem_kscan_record_keypress
+p_kscan_get_row_state:
+	jam 0, mem_kscan_row_scanned
+	arg mem_kscan_row_gpio_pin, regc
+p_kscan_get_row_state_loop:
+	ifetcht 1, regc
+	call gpio_get_bit
+	call p_kscan_avoid_shake_and_record_key, true  //low , in
+
+	ifetcht 1, regc        //current row recover to pull up
+	call gpio_config_input
+	call p_kscan_recover_col_output_low  
+	
+	increase 1, regc
+	fetch 1, mem_kscan_row_scanned
+	pincrease 1
+	store 1, mem_kscan_row_scanned
+	fetcht 1, mem_kscan_row_nums
+	isub temp, null
+	nbranch p_kscan_get_row_state_loop, positive
+	rtn
+ifdef P_KEYSCAN_WITH_GND	
+p_kscan_press_GND_related:
+	fetch 1, mem_kscan_row_scanned
+	pincrease 1
+	fetcht 1, mem_kscan_col_nums
+	increase 1, temp
+	imul32 temp, pdata
+	iforce queue
+	fetch 8, mem_kscan_record_keypress
+	qset1 pdata
+	store 8, mem_kscan_record_keypress
+	rtn
+endif
+
+p_kscan_set_default_avoid_shake_time:
+	arg 1, loopcnt
+	rtn
+	
+p_kscan_avoid_shake_and_record_key:
+	fetch 2, mem_kscan_avoid_shake_delay_time
+	iforce loopcnt
+	call p_kscan_set_default_avoid_shake_time, blank
+	call delay_ms_wait
+	ifetcht 1, regc
+	call gpio_get_bit
+	nrtn true
+	nop 12000 
+	
+	ifetcht 1, regc
+	call gpio_get_bit
+	nrtn true
+	nop 12000 
+	
+	ifetcht 1, regc
+	call gpio_get_bit
+	nrtn true
+	call p_kscan_all_col_pull_up
+ifdef P_KEYSCAN_WITH_GND	
+	ifetcht 1, regc //deal with GND
+	call gpio_get_bit
+	branch p_kscan_press_GND_related, true
+endif	
+	
+p_kscan_check_col_elec_level:
+	ifetcht 1, regc
+	or temp, 0x80, temp
+	call p_gpio_config_output
+	jam 0, mem_kscan_col_scanned	
+	arg mem_kscan_col_gpio_pin, rega
+p_kscan_check_col_elec_level_loop:  
+	ifetcht 1, rega
+	call gpio_get_bit  //only "pdata" , "temp"
+	call p_kscan_record_keypress, true  
+	
+	increase 1, rega
+	fetch 1, mem_kscan_col_scanned
+	pincrease 1
+	store 1, mem_kscan_col_scanned
+	fetcht 1, mem_kscan_col_nums
+	isub temp, null
+	nbranch p_kscan_check_col_elec_level_loop, positive	
+	rtn
+
+
+p_kscan_record_keypress:
+	fetch 1, mem_kscan_row_scanned
+	fetcht 1, mem_kscan_col_nums
+ifdef P_KEYSCAN_WITH_GND	
+	increase 1, temp
+endif	
+	imul32 temp, pdata
+	//nop 10000
+	fetcht 1, mem_kscan_col_scanned
+	increase 1, temp
+	iadd temp, pdata
+	iforce queue
+	enable true
+	fetch 8, mem_kscan_record_keypress
+	qsetflag true, pdata
+	store 8, mem_kscan_record_keypress
+	rtn
+p_kscan_all_col_pull_up:
+	arg mem_kscan_col_gpio_pin, rega
+	fetch 1, mem_kscan_col_nums
+	iforce loopcnt
+	branch p_kscan_input_pull_up_loop
+
+
+/*
+mem_light_current_key: 记录当前按键
+*/
+
+p_kscan_keypress_analysis:
+	fetch 8, mem_kscan_record_keypress
+	rtn blank
+p_kscan_keypress_analysis_process:	
+	fetch 1, mem_kscan_row_nums
+	fetcht 1, mem_kscan_col_nums
+	increase 1, temp    //GND也算一列
+	imul32 temp, loopcnt
+	deposit loopcnt
+	rtn blank
+	fetch 8, mem_kscan_record_keypress 
+	arg 0, queue
+	call p_kscan_keypress_analysis_get_keypress   //queue is the key num
+	deposit queue   //copy queue to pdata
+	store 1, mem_light_current_key
+	rtn
+
+
+p_kscan_keypress_analysis_get_keypress:
+	qisolate1 pdata  
+	rtn true
+	increase 1, queue
+	loop p_kscan_keypress_analysis_get_keypress
+	rtn 	
+endif
+

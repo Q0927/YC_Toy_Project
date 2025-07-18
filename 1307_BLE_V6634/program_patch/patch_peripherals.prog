@@ -1,0 +1,271 @@
+
+
+ifdef UART_INIT
+p_mesh_uart_init:
+	call p_mesh_uart_init_buffer
+	arg UART_BAUD,temp
+	call uartb_calc_baud_rate_config
+	call mesh_uart_init+7
+p_uart_gpio_set_init:
+	jam gpcfg_uartb_txd,core_gpio_conf+UART_TX_GPIO
+	jam gpcfg_uartb_rxd|gpcfg_pullup,core_gpio_conf+UART_RX_GPIO
+	rtn
+
+
+p_mesh_uart_init_buffer:
+	setarg mem_uart_rx_buffer
+	store 2,mem_pdatatemp
+	setarg mem_uart_rx_buffer_end
+	istore 2,contw
+	setarg mem_uart_tx_buffer
+	istore 2,contw
+	setarg mem_uart_tx_buffer_end
+	istore 2,contw
+	fetch 8,mem_pdatatemp
+	branch uartb_init_dma_mem
+endif	
+
+
+ifdef UART_FUNCTION
+/*
+功能:串口收到什么，直接串口打印出去
+注:
+demo中uart 的rx buffer为mem_uart_demo_rx_buff，只申请了4字节，需要根据
+应用的实际需要调整buffer大小
+*/
+p_uart_demo:
+	jam 0, mem_uart_demo_rx_buff
+	arg UART_RX_LEN, loopcnt
+	arg mem_uart_demo_rx_buff, rega
+	call p_uart_rx
+	fetch 1, mem_uart_demo_rx_buff
+	rtn blank
+	
+	arg UART_RX_LEN, loopcnt
+	arg mem_uart_demo_rx_buff, rega
+	call p_uart_tx
+	rtn
+
+/*
+loopcnt:tx len
+rega: tx buffer
+*/
+p_uart_tx:
+	call uartb_prepare_tx_register_push
+	copy rega, contr
+	call uart_copy_tx_bytes_fast
+	branch uartb_send_register_pop
+
+/*
+loopcnt:rx len
+rega: rx buffer
+备注:
+core_uartb_rxitems表示uart中已经收到，但是并未被软件读取的字节数，
+可以通过此寄存器判断uart是否已经收到数据，以及是否已经接收完毕。
+*/	
+p_uart_rx:
+	fetch 2, core_uartb_rxitems
+	isub loopcnt, null
+	nrtn positive
+	call uartb_prepare_rx
+	copy rega, contw
+	call uart_copy_rx_bytes_fast
+	branch uartb_rxdone
+endif
+
+//input:rega is tx data ptr
+//loopcnt is tx data length
+//regb is logging type
+ifdef DBG_LOG_DEMO
+p_log_demo:
+	arg mem_log_demo_data, rega
+	arg LOGGING_DEMO_LEN, loopcnt
+	arg LOGGING_DEMO_TYPE, temp
+	branch logging_tx_info
+endif
+
+
+
+
+ifdef DBG_LOG_TX	
+p_24g_recv_ack_log:
+	arg mem_24g_rxbuf+2, rega
+	fetch 1, mem_24g_rxbuf+1
+	rshift3 pdata, loopcnt
+	arg LOGGING_TYPE_24G_RECV_ACK, regb
+	branch logging_tx_info	
+endif
+
+ifdef DBG_LOG_RX
+p_24g_rx_log:
+	arg mem_24g_rxbuf+2, rega
+	fetch 1, mem_24g_rxbuf+1
+	rshift3 pdata, loopcnt
+	arg LOGGING_TYPE_24G_RX, regb
+	branch logging_tx_info
+
+/*
+打印log的过滤规则根据自己发送的数据自定义
+*/
+p_rx_debug_filter:
+	call disable_user
+	fetch 2, mem_le_24g_rx_last
+	fetcht 2, mem_24g_rxbuf+2
+	isub temp, null
+	rtn zero
+	storet 2, mem_le_24g_rx_last
+	branch enable_user
+endif
+
+p_gpio_config_output:
+	setflip 7, temp
+	branch gpio_config_output
+
+
+p_pwm_disable:
+	fetch 1,core_pwm_en
+   	qset0 pdata
+   	store 1,core_pwm_en
+	rtn
+
+ifdef ICE_FUNCTION
+
+lpm_write_ice_disable: 
+	fetch 2,core_ucode_flag
+	set0 lpmreg_ice_mode_bit,pdata 
+	store 4,core_lpm_reg 
+	branch lpm_write2_ctrl_option
+
+lpm_write_ice_enable:
+	fetch 2,core_ucode_flag 
+	set1 lpmreg_ice_mode_bit,pdata 
+	store 4,core_lpm_reg 
+	branch lpm_write2_ctrl_option
+
+endif
+
+
+ifdef WATCH_DOG_ENABLE
+/*
+看门狗一共12bit，0x8004为高8bit，0x800b为低4bit。先使能再喂狗
+input:temp,unit:7.8125ms, max : 0x7ff
+
+例:
+call wdt_set_enable
+
+arg 1, temp
+call p_wdt_init_config
+*/
+p_wdt_init_config:
+	setarg 0x7ff
+	iand temp, temp
+	deposit temp
+	rtn blank
+	setarg 0x800
+	isub temp, pdata
+	rshift4 pdata, temp
+	storet 1, 0x8004
+	nop 1440
+	and pdata, 0x0f, pdata
+	store 1, 0x800b
+	rtn
+endif
+
+ifdef SELECT_FLASH
+
+/*
+	芯片硬件级驱动flash读写驱动
+*/
+//length:temp 
+//mem ptr:rega
+//flash addr:pdata
+
+/*
+note:
+time consumption: about 1.5ms
+*/
+spi_write_flash_data_without_erase:
+	arg 1,regb
+	branch spi_write_flash_data_and_erase_judge
+
+//length:temp 
+//mem ptr:rega
+//flash addr:pdata
+
+/*
+note:
+time consumption: about 10ms
+*/
+spi_write_flash_data:
+	arg 0, regb
+spi_write_flash_data_and_erase_judge:
+	store 3,mem_spi_write_addr
+	copy rega,pdata
+	store 2,mem_spi_write_ptr
+	storet 2,mem_spi_write_len
+	
+	deposit regb	
+	call spid_flash_erase_sector_and_wait, blank
+	branch spid_flash_write_data + 2
+
+
+//flash addr:pdata
+/*
+note:
+time consumption: about 9ms
+*/
+spi_erase_flash_sector_global:
+	store 3,mem_spi_write_addr
+//input:pdata is flash addr
+spid_flash_erase_sector_and_wait:
+	call spid_flash_erase_sector+2	
+	branch wait_spid_flash_done
+	
+//length:temp 
+//mem ptr:rega
+//flash addr:pdata
+spi_read_flash_data:
+	branch spid_read_flash
+
+
+
+/*
+	动态加载代码
+*/
+p_zcode_entrance_2Bytes_common:
+	store 2, mem_zcode_temp_param0
+	branch p_zcode_entrance 
+
+p_zcode_entrance:
+	fetcht 2,mem_zcode_temp_param0
+	rshift4 temp,temp
+	fetch 2,mem_zcode_current_number
+	isub temp,null
+	branch p_zcode_run,zero
+	storet 2,mem_zcode_current_number
+p_load_zcode:
+	//increase 1,temp
+	setarg ZCODE_BUFF_SIZE
+	imul32 temp,temp
+	fetch 3,mem_xip_flash_offset
+	isub temp,pdata
+	increase -4,pdata
+
+	arg ZCODE_BUFF_SIZE,temp
+	arg mem_zcode_buff,rega
+	call spi_read_flash_data
+
+	setarg mem_zcode_buff
+	store 2,mem_patch_ptr
+	jam ZCODE_CODE_SIZE,mem_patch_len
+	call load_ucode
+	setarg 0
+	store 4,mem_patch_ptr
+p_zcode_run:
+	fetch 1,mem_zcode_temp_param0
+	branch p_zcode
+endif
+
+
+
+

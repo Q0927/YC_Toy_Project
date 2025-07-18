@@ -1,0 +1,110 @@
+
+
+#mem_kscan_row_nums: 04
+#mem_kscan_col_nums: 05
+#mem_kscan_col_gpio_pin: 07 0c 0b 06 05
+#mem_kscan_row_gpio_pin: 03 04 0d 0a
+
+mem_le_adv_enable:
+01   
+mem_le_adv_interval:f0 00
+
+mem_le_scan_enable:
+01     #scan enable
+0a 00  #scan interval
+08 00  #scan window
+
+mem_le_adv_channel_map:07
+mem_device_option: 0b
+
+mem_eeprom_base:00 1f
+
+
+mem_tx_power: 00
+#0x00 TX_POWER_0DB
+#0x03 TX_POWER_3DB
+#0x05 TX_POWER_5DB
+#0x06 TX_POWER_6DB
+#0x07 TX_POWER_7DB
+#0x0a TX_POWER_10DB
+
+#0x83 TX_POWER_F3DB
+#0x85 TX_POWER_F5DB
+#0x94 TX_POWER_F20DB
+#0x9e TX_POWER_F30DB
+
+
+#mem_rf_debug_rx_gpio: 8c
+#mem_rf_debug_tx_gpio: 8a
+
+
+#################BLE CONN#########################
+
+mem_lpm_mode:00
+#mem_lpm_interval:00 01    #unit: 0.625ms
+mem_lpm_overhead:08   
+mem_lpm_mult:05
+mem_lpm_mult_timeout:02
+
+mem_le_lap:81 31 20 98 07 2a
+mem_le_name_len:
+'YC1307
+
+mem_le_adv_data_len:1f
+#Len AD_Type<Generic Access Profile.pdf> AD_Data
+mem_le_adv_data:
+02 01 05          #01: Flags; 05:
+
+mem_queue_ptr: mem_le_queue_each_size
+
+mem_le_queue_each_size:
+06     #queue 的单个元素的长度
+04     #queue 的队列长度
+00     #queue current num
+00     #queue read ptr
+00     #queue write ptr
+
+##############BLE ATT LIST####################
+
+mem_ui_le_uuid_table:mem_ble_att_list
+
+
+mem_ble_att_list:
+#Primary service yichip transmit ------
+01 00 02 00 28 02 01 18   #0x1801 GATT Service------Generic Access<16-bit UUID Numbers Document.pdf>
+#Service Changed
+02 00 02 03 28 01 20    #0x20 properties------notify
+03 00 02 05 2a 01 00
+#Client Characteristic Configuration
+04 00 02 02 29 02 01 00
+
+#Primary service GAP ------
+05 00 02 00 28 02 00 18
+
+#Device name
+06 00 02 03 28 01 4e
+07 00 02 00 2a 13 41 73 74 20 4c 45 20 4d 6f 75 73 65 20 20 20 20 20 20 20
+
+#Apperance
+08 00 02 03 28 01 4e
+09 00 02 01 2a 02 00 00
+
+#Perpheral Preferred Connection Parameters
+0a 00 02 03 28 01 02
+0b 00 02 04 2a 08 10 00 20 00 05 00 2c 01
+
+#Primary service yichip transmit ------
+0c 00 02 00 28 10 55 e4 05 d2 af 9f a9 8f e5 4a 7d fe 43 53 53 49
+
+#Characteristic rx--write
+0d 00 02 03 28 01 08
+0e 00 02 f3 ff 01 00
+#Characteristic tx--notify
+0f 00 02 03 28 01 10
+10 00 02 f4 ff 01 00
+#Client Characteristic Configuration
+11 00 02 02 29 02 00 00
+00 00    
+
+##############BLE ATT LIST END####################
+

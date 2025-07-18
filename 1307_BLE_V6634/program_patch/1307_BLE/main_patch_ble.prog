@@ -1,0 +1,23 @@
+
+p_patch:
+	branch loop
+
+p_patch_ext:
+	beq patch38_5, p_le_scan
+	beq patch38_6, p_le_scan_patch
+	branch loop
+
+p_idle_process_ext:
+ifdef P_BLE_NOTIFY
+	call p_ble_send_notify_data_set
+	call p_ble_send_notify
+endif	
+	rtn
+
+p_cb_event_timer_ext:
+	rtn
+
+
+
+
+

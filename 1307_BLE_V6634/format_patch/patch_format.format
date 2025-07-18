@@ -1,0 +1,115 @@
+
+
+memalloc ali_mesh(
+/*
+memalloc申请的变量上电为随机值，所以把变量都申请在
+mem_memalloc_start和mem_memalloc_end之间，方便软件清0.
+mem_memalloc_end申请在patch_memalloc_end.format中
+*/
+	0 mem_memalloc_start
+ifdef P_EEPROM_DEMO
+	1 mem_eeprom_demo
+endif	
+
+
+)
+
+
+
+/*
+g24_rx max addr:
+0x48f7 
+2 mem_rssi_noise_device2_buffer_ptr
+g24_tx max addr:
+0x48d7 
+1 mem_rssi_dis_max_ble
+
+ali_mesh的地址从0x48f9开始申请
+*/
+
+
+xmemalloc ali_mesh(
+	4 mem_last_clkn_temp
+
+ifdef P_TIMER_DEMO
+2 mem_100ms_demo_timer
+2 mem_100ms_demo2_timer
+
+1 mem_100ms_demo_counter
+1 mem_100ms_demo2_counter
+
+1 mem_625us_demo_counter
+endif
+
+ifdef P_LPM
+	4 mem_light_lpm_gpio_config_flag
+	1 mem_light_lpm_gpio_config_io_temp
+endif
+
+ifdef P_ADC_ENABLE
+	2 mem_adc_voltage_result
+endif
+
+ifdef DBG_LOG_DEMO
+	1 mem_log_demo_data
+endif
+
+ifdef UART_FUNCTION
+	4 mem_uart_demo_rx_buff
+	4 mem_uart_demo_tx_buff
+endif	
+ifdef P_NEC_DECODE
+	1 mem_nec_receive_flag
+	4 mem_nec_receive_data
+endif
+)
+
+(
+256 ZCODE_BUFF_SIZE
+64 ZCODE_CODE_SIZE
+0xff ZCODE_FLAG
+)
+
+(
+3 ICE_BONDING
+)
+
+(
+/*
+uart的缓存池，一般无需更改
+*/
+0x1c00 mem_uart_rx_buffer
+0x1dff mem_uart_rx_buffer_end
+0x1e00 mem_uart_tx_buffer
+0x1fff mem_uart_tx_buffer_end
+)
+(
+4 UART_RX_LEN
+4 UART_TX_LEN
+)
+(
+/*
+uart config
+*/
+4 UART_TX_GPIO
+6 UART_RX_GPIO
+921600 UART_BAUD
+)
+
+(
+1 LOGGING_DEMO_LEN  /*只是需要打印数据的字节数*/
+0x0001 LOGGING_DEMO_TYPE
+)
+
+/*adc config*/
+(
+0 ADC_CHANNEL  /*GPIO04*/
+//1 ADC_CHANNEL  /*GPIO05*/
+//2 ADC_CHANNEL  /*GPIO06*/
+//3 ADC_CHANNEL  /*GPIO07*/
+//4 ADC_CHANNEL  /*GPIO09*/
+//5 ADC_CHANNEL  /*GPIO10*/
+//6 ADC_CHANNEL  /*GPIO11*/
+//7 ADC_CHANNEL  /*GPIO12*/
+)
+

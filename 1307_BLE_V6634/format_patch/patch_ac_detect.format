@@ -1,0 +1,38 @@
+
+ifdef AC_DETECT
+xmemalloc ali_mesh(
+
+	//sdk底层维护
+	//连续多少周期检测到低电平count
+	1 mem_ac_detecting_low_level_cnt
+	//检测到high level 表示有交流电存在过，debug时候避免一直进入休眠
+	1 mem_ac_enter_lpm_enable
+
+	1 mem_ac_re_detect_flag
+	
+)
+
+
+memalloc ali_mesh(
+)
+
+endif
+
+
+ifdef PIN14_IS_GPIO_AC_DETECT
+(
+	5 AC_DETECT_GPIO
+)
+endif
+
+
+(
+//AC检测timer,0.625ms为单位，
+7 AC_DETECT_TIME_OUT
+//低电平周期个数
+6 AC_DETECT_DEADLINE
+//连续多少个高电平唤醒芯片，过滤毛刺
+3 AC_RE_DETECT_TIMES
+
+)
+

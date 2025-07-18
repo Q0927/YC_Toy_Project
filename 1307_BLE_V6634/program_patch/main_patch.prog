@@ -1,0 +1,64 @@
+
+
+	bbit1 8,pf_patch_ext
+	beq patch10_2,p_shutdown_radio
+	beq patch11_3,p_initialize_radio_cont
+	beq patch15_5, p_app_init
+	branch p_patch
+
+pf_patch_ext:
+	rtneq patch3f_7
+ifdef P_ADC_ENABLE
+	beq patch26_0,p_vdd_calculate_by_mode
+endif
+	beq patch32_2,p_timer_init
+	beq patch32_3,p_timer_check
+	beq patch33_4,p_le_slave_match
+	beq patch33_6,p_le_slave_unsync
+	beq patch34_3,p_le_enable_phy_by_pdata
+	beq patch35_4,p_le_receive_on_attempt
+	branch p_patch_ext
+
+
+p_idle_process:
+ifdef UART_FUNCTION
+	call p_uart_demo
+endif	
+
+ifdef P_KEYSCAN
+	call p_kscan_init
+	call p_kscan
+	call p_kscan_keypress_analysis
+endif	
+
+ifdef P_TIMER_DEMO
+	call p_timer_demo_625us
+endif
+
+ifdef P_ADC_ENABLE
+        call enable_adc
+        call vdd_calculate_by_mode
+        store 2, mem_adc_voltage_result    //sample:0x5a0(decimal: 1440).It means that voltage is 1.44V.
+endif
+ifdef P_NEC_DECODE
+	call p_nec_decode_demo
+endif	
+ifdef P_LPM
+	call p_app_enter_lpm
+endif
+ifdef FCC_AUTH
+	call p_fcc_auth_config
+endif
+	branch p_idle_process_ext
+
+
+
+p_cb_event_timer:
+ifdef P_TIMER_DEMO
+	call p_100ms_timer_demo
+	call p_100ms_timer_demo2
+endif	
+	branch p_cb_event_timer_ext
+
+	
+

@@ -1,0 +1,174 @@
+mem_patch00:
+00   #mem_patch00
+00   #mem_patch01
+00   #mem_patch02
+00   #mem_patch03
+00   #mem_patch04
+00   #mem_patch05
+00   #mem_patch06
+00   #mem_patch07
+00   #mem_patch08
+00   #mem_patch09
+00   #mem_patch0a
+00   #mem_patch0b
+00   #mem_patch0c
+00   #mem_patch0d
+00   #mem_patch0e
+00   #mem_patch0f
+04   #mem_patch10
+08   #mem_patch11
+00   #mem_patch12
+00   #mem_patch13
+00   #mem_patch14
+20   #mem_patch15
+00   #mem_patch16
+00   #mem_patch17
+00   #mem_patch18
+00   #mem_patch19
+00   #mem_patch1a
+00   #mem_patch1b
+00   #mem_patch1c
+00   #mem_patch1d
+00   #mem_patch1e
+00   #mem_patch1f
+00   #mem_patch20
+00   #mem_patch21
+00   #mem_patch22
+00   #mem_patch23
+00   #mem_patch24
+00   #mem_patch25
+01   #mem_patch26
+00   #mem_patch27
+00   #mem_patch28
+00   #mem_patch29
+00   #mem_patch2a
+00   #mem_patch2b
+00   #mem_patch2c
+00   #mem_patch2d
+00   #mem_patch2e
+00   #mem_patch2f
+00   #mem_patch30
+00   #mem_patch31
+0c   #mem_patch32
+50   #mem_patch33
+08   #mem_patch34
+10   #mem_patch35
+00   #mem_patch36
+00   #mem_patch37
+00   #mem_patch38
+00   #mem_patch39
+00   #mem_patch3a
+00   #mem_patch3b
+00   #mem_patch3c
+00   #mem_patch3d
+00   #mem_patch3e
+00   #mem_patch3f
+
+
+
+mem_gpio_wakeup_low:00 00 08 00 00 00 00 00
+mem_lpm_config:88 1f ca	#4khz
+mem_lpm_xtalcnt:70 3f 0c 33 03
+#mem_lpm_xtalcnt:70 3f 0c 37 07        #enable 0x5000~0x5fff
+mem_lpm_ctrl3_aon_vsel:9d 10 24
+mem_lpm_hibernate_switch:00
+
+mem_fcomp_div:18
+
+mem_rc_cal:d3
+mem_rf_ldo_cfg1:00
+mem_syn_afc_cfg1:29
+mem_dig_aon_vsel:00	#bit5-4;00:1.2V;01:1.08V;02:0.96V;03:0.84V
+
+mem_gain_fix:ff	#00:soft agc; ff:hw agc
+mem_gain_table:88 66 44
+mem_gain_second_agc_en:00	#hw agc: 0:second agc disable
+
+mem_adc_wait_count:0c
+
+
+mem_iscan_window:24 00
+mem_iscan_interval:00 02
+mem_pscan_window:24 00
+mem_pscan_interval:00 02
+
+mem_inq_window:20 00
+mem_page_window:20 00
+mem_page_to:00 20
+mem_rx_window_init:80 04
+mem_rx_window_sniff:00 0c
+
+
+mem_lmp_version:09 0e 05 04 00
+mem_seqi:7f
+
+
+mem_rf_init_data:
+ff
+mem_rf_init_ptr:mem_rf_init_data
+
+
+#bit7:0 means disable rf debug function
+mem_rf_debug_rx_gpio:06
+mem_rf_debug_tx_gpio:07
+
+
+
+
+#mem_kscan_row_nums: 04
+#mem_kscan_col_nums: 05
+#mem_kscan_col_gpio_pin: 07 0c 0b 06 05
+#mem_kscan_row_gpio_pin: 03 04 0d 0a
+
+mem_le_adv_enable:
+00     
+mem_le_adv_interval:f0 00
+
+mem_le_scan_enable:
+00    #scan enable
+0a 00  #scan interval
+08 00  #scan window
+
+mem_le_adv_channel_map:07
+mem_device_option: 0b
+
+mem_eeprom_base:00 1f
+
+
+mem_tx_power: 0a
+#0x00 TX_POWER_0DB
+#0x03 TX_POWER_3DB
+#0x05 TX_POWER_5DB
+#0x06 TX_POWER_6DB
+#0x07 TX_POWER_7DB
+#0x0a TX_POWER_10DB
+
+#0x83 TX_POWER_F3DB
+#0x85 TX_POWER_F5DB
+#0x94 TX_POWER_F20DB
+#0x9e TX_POWER_F30DB
+
+
+mem_24g_tx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_rx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_ch:00
+#2402Mhz + mem_24g_ch
+
+
+mem_24g_addr:12 34 56 78
+
+
+
+

@@ -1,0 +1,11 @@
+
+
+//define P_TIMER_DEMO
+//define P_LPM
+define UART_INIT
+define DBG_LOG_DEMO
+//define UART_FUNCTION
+//define P_NEC_DECODE
+define P_BLE_WRITE
+define P_BLE_NOTIFY
+

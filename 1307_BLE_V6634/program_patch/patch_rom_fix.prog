@@ -1,0 +1,193 @@
+
+p_initialize_radio_cont:
+	jam 0x10,0x896f
+	jam 0,core_syn_loopdiv_dsm_cfg
+	jam 0x03,core_rx_lna_cfg3
+	branch initialize_radio_cont+1
+
+p_le_enable_phy_by_pdata:
+	copy temp,pdata
+	bbit1 BIT_LE_1M_PHY,le_enable
+	bbit1 BIT_LE_2M_PHY,le_enable_2M
+	bbit0 BIT_LE_CODED_PHY,le_enable
+	bbit1 BIT_LE_CODED_PHY_S8,p_le_enable_coded_s8
+	bbit1 BIT_LE_CODED_PHY_S2,le_enable_coded_s2
+	branch le_enable
+	
+p_le_enable_coded_s8:
+	call p_le_enable_coded
+	set1 mark_ble_lr_s8,mark
+	rtn
+p_le_enable_coded:
+	call le_enable
+	set1 mark_ble_lr,mark
+	set0 mark_ble_lr_s8,mark
+	jam 0x05,0x8901
+	jam 0x80,0x8920
+	jam 0x24,0x8930
+	jam 0x0a,0x8934
+	rtn
+
+//timer ROM bugfix
+p_timer_init:
+	fetch 4,mem_last_clkn_temp
+	store 4,mem_last_clkn
+	rtn
+
+p_timer_check:
+	fetcht 4,mem_last_clkn
+	rshift clkn_bt,pdata
+	store 4,mem_last_clkn_temp
+	branch timer_check+3
+
+
+/********************lpm patch************************/
+p_ldo_abb_en_init:
+	 fetch 1, core_rf_ldo_en0
+	 set1 3, pdata
+	 store 1, core_rf_ldo_en0
+	 nop 1200
+	 set0 3, pdata
+	 store 1, core_rf_ldo_en0
+	 rtn
+
+p_shutdown_radio:
+	call rf_debug_shutdown_radio_line	//L-H-L
+	force 0x08,radio_ctrl
+	force 0,radio_ctrl
+	disable is_rx
+	disable is_tx
+	pulse packet_end
+	jam 0x5,modem_en
+	nop 2
+	jam 0x0,modem_en
+	call set_sync_on
+	jam 0,core_syn_en
+	jam 0x80,core_rf_ldo_en0
+	fetch 1,core_clkpll_cfg6
+	set0 7,pdata
+	store 1,core_clkpll_cfg6
+	jam 0,core_rf_ldo_en1
+	branch gain_control
+
+p_le_slave_match:
+	fetch 1,mem_le_md_count
+	pincrease 1
+	store 1,mem_le_md_count
+	beq LE_MD_MAX_COUNT,le_slave_cont
+	call le_acknowledge
+	call le_prepare_tx
+	fetch 1,mem_le_tx_phy
+	call le_enable_phy_by_pdata
+	call le_transmit
+	branch le_slave_match+10
+	
+
+p_le_slave_unsync:
+	call end_of_packet
+	call le_lpm_set_mult
+	branch calc_clke_offset
+
+
+p_le_receive_on_attempt:
+	enable swfine
+	arg PARAM_T_IFS_150US+PARAM_20MS_INIT+PARAM_SYNC_TIME_DIFFERENCE,temp
+	fetch 1,mem_system_clk
+	imul32 temp,temp
+	rshift pdata,pdata
+	iadd temp,stop_watch
+	branch le_receive_on_attempt+6
+	
+ifdef P_ADC_ENABLE
+p_adc_init_data:
+	rtn wake
+	setarg OTP_OFFSET_ADC_PARAM
+	branch adc_init_data+2
+
+
+p_vdd_calculate_by_mode:
+	fetch 1,mem_adc_config_flag
+	beq ADC_CONFIG_VINLPM,vdd_calculate_vinlpm
+	beq ADC_CONFIG_HVIN,vdd_calculate_hvin
+	beq ADC_CONFIG_GPIO,p_vdd_calculate_io
+	rtn
+
+
+p_vdd_calculate_io:
+        setarg 2000
+	store 2,mem_reference_voltage //diff
+	fetcht 2,mem_3v_adc_io_data
+	fetch 2,mem_1v_adc_io_data
+	arg 3000,regc //max vol
+	branch p_vdd_calculate
+
+
+p_vdd_calculate:
+	isub temp,rega
+	fetch 2,mem_adc_current_value
+	isub temp,pdata
+	nbranch vdd_calculate1,positive
+	fetcht 2,mem_reference_voltage
+	imul32 temp,regb
+	copy regc,pdata
+	imul32 rega,pdata
+	isub regb,pdata	
+	nbranch set_pdata_0, positive   //adc在测0v电压时会超量程。这里做个异常判断
+	branch vdd_calculate2
+
+endif
+
+
+ifdef P_OTP_WRITE_READ_ENABLE
+/* pdata=otp address, rega points to data, temp is count */
+p_otpd_read_data:
+	call p_otp_read_pwr_on
+	branch otpd_read_data+1
+p_otp_read_pwr_on:
+	jam 0xc,0x8aa0
+	jam 0xfb,0x8aa1
+	jam 0x3,0x8aa2
+	branch p_otp_pwr_on
+
+/* temp = otp address, rega pointers data, loopcnt is count */
+p_otp_write:
+	call p_otp_prog_pwr_on
+ 	branch otp_write+1
+p_otp_prog_pwr_on:
+	jam 0x4,0x8aa0
+	jam 0x33,0x8aa1
+	jam 0x1,0x8aa2
+p_otp_pwr_on:
+	store 2,mem_timeup
+	jam 0xff,core_clkpll_ctrl1
+
+	fetch 1,core_rf_ldo_en1
+	store 1,mem_timeup+2
+	or_into 0x4,pdata
+	store 1,core_rf_ldo_en1
+
+	fetch 1,core_rf_ldo_cfg7
+	store 1,mem_timeup+3
+	
+	jam 0x11,core_rf_ldo_cfg7
+	
+	nop 1000
+	fetch 1,core_clkpll_ctrl2
+	or_into 0x1,pdata
+	store 1,core_clkpll_ctrl2
+	jam 0x03,core_clkpll_ctrl0
+
+	fetch 1,0x8aa0
+	or_into 0xd0,pdata
+	store 1,0x8aa0
+	nop 6000  //delay 500us
+	fetch 1,0x8aa0
+	or_into 0x20,pdata
+	store 1,0x8aa0
+	nop 12000   //delay 1ms
+	fetch 2,mem_timeup
+	rtn
+
+endif
+
+

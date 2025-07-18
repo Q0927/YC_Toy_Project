@@ -1,0 +1,29 @@
+
+p_patch:
+	branch loop
+
+p_patch_ext:
+	branch loop
+
+p_idle_process_ext:
+ifdef G24_TX
+	call g24_sim_tx_with_datalen_set
+	call g24_recved_ack_parse
+endif
+
+ifdef G24_RX
+	call g24_sim_rx
+	call g24_rx_parse
+endif
+	rtn
+
+p_cb_event_timer_ext:
+ifdef G24_TX
+	call p_24g_tx_state_timer
+endif
+	rtn
+
+
+
+
+

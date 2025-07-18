@@ -1,0 +1,58 @@
+
+
+#mem_kscan_row_nums: 04
+#mem_kscan_col_nums: 05
+#mem_kscan_col_gpio_pin: 07 0c 0b 06 05
+#mem_kscan_row_gpio_pin: 03 04 0d 0a
+
+mem_le_adv_enable:
+00     
+mem_le_adv_interval:f0 00
+
+mem_le_scan_enable:
+00    #scan enable
+0a 00  #scan interval
+08 00  #scan window
+
+mem_le_adv_channel_map:07
+mem_device_option: 0b
+
+mem_eeprom_base:00 1f
+
+
+mem_tx_power: 0a
+#0x00 TX_POWER_0DB
+#0x03 TX_POWER_3DB
+#0x05 TX_POWER_5DB
+#0x06 TX_POWER_6DB
+#0x07 TX_POWER_7DB
+#0x0a TX_POWER_10DB
+
+#0x83 TX_POWER_F3DB
+#0x85 TX_POWER_F5DB
+#0x94 TX_POWER_F20DB
+#0x9e TX_POWER_F30DB
+
+
+mem_24g_tx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_rx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_ch:00
+#2402Mhz + mem_24g_ch
+
+
+mem_24g_addr:12 34 56 78
+
+
+

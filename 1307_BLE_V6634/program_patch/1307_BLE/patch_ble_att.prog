@@ -1,0 +1,105 @@
+
+
+//le_send_terminate_ind_user_terminated
+
+p_le_scan:
+	call p_anchor_protect_check
+	rtn user
+	call p_conn_event_check
+	rtn user
+	branch le_scan+1
+	
+
+p_anchor_protect_check:
+	call disable_user
+	fetch 1, mem_le_state
+	and pdata, 0x03, pdata
+	sub pdata, 3, null
+	nrtn zero
+	fetch 1,mem_le_state
+	rtnbit1 lestate_got_first_packet
+	branch enable_user
+	
+
+p_conn_event_check:
+	fetcht 2,mem_le_scan_window
+	arg 4,queue
+	branch sniff_check_window
+
+
+p_le_send_adv_ind:
+	jam 0x42, mem_le_txheader
+	jam 3, mem_le_adv_data_len
+	jam 2,mem_le_adv_data
+	jam 1,mem_le_adv_data+1
+	jam 2,mem_le_adv_data+2
+	branch le_send_adv_ind+8
+
+
+
+p_le_scan_patch:
+
+	rtn
+
+p_process_bb_event:
+	deposit regc
+	beq BT_EVT_LE_CONNECTED, p_ble_connted
+	beq BT_EVT_LE_DISCONNECTED, p_ble_disconnted
+	rtn
+
+p_ble_disconnted:
+	call queue_init
+	branch app_ble_start_adv
+
+p_ble_connted:
+	branch app_lpm_mult_enable
+
+ifdef P_BLE_WRITE
+/* rega is pointer to data, regb is length */
+p_ble_receive_data:
+	fetch 2,mem_le_att_handle
+	beq HANDLE_OF_WRITE,p_ble_receive_writeatt
+	rtn
+	
+/* rega is pointer to data, regb is length */
+p_ble_receive_writeatt:
+	copy regb, loopcnt
+	copy rega, contr
+	arg mem_ble_write_data, contw   //demo 中mem_ble_write_data只申请了6字节，可自行调整
+	branch memcpy
+	
+endif	
+
+ifdef P_BLE_NOTIFY
+
+//demo
+p_ble_send_notify_data_set:
+	fetch 1, mem_ble_notify_enable
+	rtn blank
+	jam 0, mem_ble_notify_enable
+	fetch 1, mem_ble_notify_data
+	pincrease 1
+	store 1, mem_ble_notify_data
+
+	arg mem_ble_notify_data, rega
+	branch queue_push
+
+p_ble_send_notify:
+	fetch 2,mem_ui_state_map
+	rtnbit0 UI_STATE_BLE_CONNECTED
+	
+	call le_fifo_check_nearly_full
+	nrtn blank
+	arg mem_ble_notify_data, rega
+	call queue_pop
+	nrtn user    //rtn, if queue is empty.
+
+	arg LEN_OF_NOTIFY_DATA, rega
+	arg HANDLE_OF_NOTIFY, temp
+	call le_att_malloc_tx_notify
+	arg LEN_OF_NOTIFY_DATA, loopcnt
+	arg mem_ble_notify_data, contr
+	branch memcpy
+endif
+
+

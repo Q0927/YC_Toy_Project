@@ -1,0 +1,30 @@
+
+
+p_app_init_ext:
+//******************************************************//
+	setarg p_idle_process
+	store 2,mem_cb_idle_process
+
+	setarg p_cb_event_timer
+	store 2,mem_cb_event_timer
+
+ifdef G24_RX	
+	setarg p_cb_24g_ackpayload
+	store 2, mem_cb_24g_ackpayload
+endif	
+//******************************************************//	
+
+ifdef G24_ACK_DISABLE
+	jam CMD_G24ACK_DISABLE, mem_24g_no_ack
+endif	
+
+ifdef G24_RX
+	jam 1, mem_le_24g_rx_enable
+endif	
+
+ifdef G24_TX
+	call p_24g_tx_state_timer_init
+endif
+	rtn
+	
+

@@ -1,0 +1,12 @@
+
+
+ifdef G24_TX
+xmemalloc ali_mesh(
+	1 mem_le_24g_recv_ack_flag
+	1 mem_le_24g_tx_enable
+	2 mem_le_24g_tx_state_timeout
+)
+
+endif
+
+

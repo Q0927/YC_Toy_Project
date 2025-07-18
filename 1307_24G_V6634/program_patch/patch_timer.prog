@@ -1,0 +1,49 @@
+
+ifdef P_TIMER_DEMO
+
+p_timer_demo_init:
+	setarg 10
+	store 2, mem_100ms_demo_timer
+	store 2, mem_100ms_demo2_timer
+	rtn
+
+
+
+p_timer_demo_625us:
+	arg timer_demo_625us,queue
+	call timer_check 
+	nrtn blank
+	setarg 1600
+	arg timer_demo_625us,queue
+	call timer_init
+	
+	fetch 1, mem_625us_demo_counter
+	pincrease 1
+	store 1, mem_625us_demo_counter
+	rtn
+
+
+
+p_100ms_timer_demo2:
+	arg mem_100ms_demo2_timer,regc
+	arg p_100ms_timer_demo2_timeout, regb
+	branch timer_single_step_2B
+p_100ms_timer_demo2_timeout:
+	setarg 10
+	store 2, mem_100ms_demo2_timer
+	fetch 1, mem_100ms_demo2_counter
+	pincrease 1
+	store 1, mem_100ms_demo2_counter
+	rtn	
+	
+p_100ms_timer_demo:
+	arg mem_100ms_demo_timer,regc
+	arg p_100ms_timer_demo_timeout, regb
+	branch timer_single_step_2B
+p_100ms_timer_demo_timeout:
+	setarg 10
+	store 2, mem_100ms_demo_timer
+	rtn	
+
+endif
+

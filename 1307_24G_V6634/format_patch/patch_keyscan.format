@@ -1,0 +1,25 @@
+
+
+ifdef P_KEYSCAN
+
+xmemalloc ali_mesh(
+/******************kscan start***********************/
+8 mem_kscan_record_keypress
+1 mem_kscan_row_nums
+1 mem_kscan_col_nums
+8 mem_kscan_row_gpio_pin
+8 mem_kscan_col_gpio_pin
+1 mem_kscan_row_scanned
+1 mem_kscan_col_scanned
+1 mem_keypress_analysis_flag
+2 mem_kscan_avoid_shake_delay_time
+1 mem_scan_col
+1 mem_kscan_enable
+2 mem_long_press_adv_timeout
+2 mem_kscan_analysis_interval_timeout
+1 mem_light_current_key
+/******************kscan end***********************/
+)
+endif
+
+
