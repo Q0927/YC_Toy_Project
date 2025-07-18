@@ -1,0 +1,203 @@
+mem_patch00:
+00   #mem_patch00
+00   #mem_patch01
+80   #mem_patch02
+01   #mem_patch03
+00   #mem_patch04
+00   #mem_patch05
+00   #mem_patch06
+00   #mem_patch07
+00   #mem_patch08
+00   #mem_patch09
+00   #mem_patch0a
+00   #mem_patch0b
+00   #mem_patch0c
+00   #mem_patch0d
+01   #mem_patch0e
+00   #mem_patch0f
+00   #mem_patch10
+00   #mem_patch11
+00   #mem_patch12
+00   #mem_patch13
+00   #mem_patch14
+00   #mem_patch15
+00   #mem_patch16
+00   #mem_patch17
+00   #mem_patch18
+00   #mem_patch19
+00   #mem_patch1a
+00   #mem_patch1b
+00   #mem_patch1c
+00   #mem_patch1d
+00   #mem_patch1e
+00   #mem_patch1f
+00   #mem_patch20
+00   #mem_patch21
+00   #mem_patch22
+00   #mem_patch23
+00   #mem_patch24
+00   #mem_patch25
+00   #mem_patch26
+00   #mem_patch27
+00   #mem_patch28
+00   #mem_patch29
+00   #mem_patch2a
+00   #mem_patch2b
+00   #mem_patch2c
+00   #mem_patch2d
+00   #mem_patch2e
+00   #mem_patch2f
+00   #mem_patch30
+00   #mem_patch31
+00   #mem_patch32
+00   #mem_patch33
+00   #mem_patch34
+00   #mem_patch35
+00   #mem_patch36
+00   #mem_patch37
+00   #mem_patch38
+00   #mem_patch39
+00   #mem_patch3a
+00   #mem_patch3b
+00   #mem_patch3c
+00   #mem_patch3d
+00   #mem_patch3e
+00   #mem_patch3f
+
+
+
+mem_lpm_config:88 1f ca	#4khz
+mem_lpm_xtalcnt:70 3f 0c 33 03
+mem_lpm_ctrl3_aon_vsel:9d 10 22
+mem_lpm_hibernate_switch:00
+mem_xtal_freq:18
+
+mem_fcomp_div:18
+
+mem_rc_cal:d3
+mem_rf_ldo_cfg1:02
+mem_syn_afc_cfg1:29
+mem_dig_aon_vsel:01	#bit5-4;00:1.2V;01:1.08V;02:0.96V;03:0.84V
+
+mem_gain_fix:ff	#00:soft agc; ff:hw agc
+mem_gain_table:88 66 44
+mem_gain_second_agc_en:00	#hw agc: 0:second agc disable
+
+mem_rx_window_sniff:00 0c
+mem_adc_delay:a0 0f
+
+mem_version:09 0e 05 05 00
+mem_seqi:7f
+
+
+mem_rf_init_data:
+ff
+mem_rf_init_ptr:mem_rf_init_data
+
+mem_load_check_sum:5a
+
+
+
+
+
+
+
+mem_device_option:0b
+
+mem_le_adv_channel_map:07
+
+
+mem_le_scan_enable:
+00   #scan enable
+0a 00  #scan interval
+08 00  #scan window
+
+mem_le_adv_enable:
+01
+mem_le_adv_interval:10 00
+
+#mem_iic_test_txbuf2:aa aa aa aa aa aa aa aa 
+#mem_iic_test_txbuf1:ff ff ff ff ff ff ff ff
+
+
+
+##############BLUETOOTH CONFIG##############
+mem_lpm_mode:00
+#mem_lpm_interval:00 01    #unit: 0.625ms
+mem_lpm_overhead:08   
+mem_lpm_mult:05
+mem_lpm_mult_timeout:02
+
+mem_le_lap_target:81 31 20 98 07 aa
+mem_le_lap:11 22 c3 d4 c5 d6
+mem_le_name_len:
+'Yichip 1306 le
+
+mem_le_adv_data_len:03
+mem_le_adv_data:
+02 01 0e
+
+mem_le_interval_min:
+08 00 #min interval
+10 00 #max interval
+00 00 #latency
+2c 01 #timeout
+
+
+mem_queue_ptr: mem_le_queue_each_size
+
+mem_le_queue_each_size:
+14     #queue 的单个元素的长度
+04     #queue 的队列长度
+00     #queue current num
+00     #queue read ptr
+00     #queue write ptr
+
+
+#####################################
+
+
+mem_ui_le_uuid_table:mem_ble_att_list
+
+#attribute list: handle 2bytes, uuid 2bytes, length 1bytes, attribute Nbytes
+mem_ble_att_list:
+#Primary service yichip transmit ------
+01 00 02 00 28 02 01 18   #0x1801 GATT Service------Generic Access<16-bit UUID Numbers Document.pdf>
+#Service Changed
+02 00 02 03 28 01 20    #0x20 properties------notify
+03 00 02 05 2a 01 00
+#Client Characteristic Configuration
+04 00 02 02 29 02 01 00
+
+#Primary service GAP ------
+05 00 02 00 28 02 00 18
+
+#Device name
+06 00 02 03 28 01 4e
+07 00 02 00 2a 13 41 73 74 20 4c 45 20 4d 6f 75 73 65 20 20 20 20 20 20 20
+
+#Apperance
+08 00 02 03 28 01 4e
+09 00 02 01 2a 02 00 00
+
+#Perpheral Preferred Connection Parameters
+0a 00 02 03 28 01 02
+0b 00 02 04 2a 08 10 00 20 00 05 00 2c 01
+
+#Primary service yichip transmit ------
+0c 00 02 00 28 02 f0 ff
+
+#Characteristic tx--notify&read
+0d 00 02 03 28 01 12
+0e 00 02 f1 ff 04 00 00 00 00
+#Client Characteristic Configuration
+0f 00 02 02 29 02 00 00
+#Characteristic rx--write
+10 00 02 03 28 01 08
+11 00 02 f2 ff 01 00
+00 00   
+
+
+
+
+

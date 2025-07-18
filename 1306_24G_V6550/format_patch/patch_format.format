@@ -1,0 +1,137 @@
+
+
+memalloc g24_rx_car(
+/*
+memalloc申请的变量上电为随机值，所以把变量都申请在
+mem_memalloc_start和mem_memalloc_end之间，方便软件清0.
+mem_memalloc_end申请在patch_memalloc_end.format中
+*/
+	0 mem_memalloc_start
+ifdef P_EEPROM_DEMO
+	3 mem_eeprom_demo
+	2 mem_iic_test_loopcnt
+	2 mem_iic_test_offset
+	8 mem_iic_test_txbuf1
+	8 mem_iic_test_rxbuf
+	8 mem_iic_test_txbuf2
+	6 mem_eep_count
+	2 mem_eeprom_test
+	10 mem_tx_data
+endif	
+
+ifdef SELECT_FLASH
+	256 mem_zcode_buff
+endif	
+)
+
+xmemalloc g24_rx_car(
+
+ifdef P_TIMER_DEMO
+	2 mem_100ms_demo_timer
+	2 mem_100ms_demo2_timer
+
+	1 mem_100ms_demo_counter
+	1 mem_100ms_demo2_counter
+
+	1 mem_625us_demo_counter
+endif
+
+ifdef P_ADC_ENABLE
+	2 mem_adc_voltage_result
+endif
+
+ifdef DBG_LOG_DEMO
+	3 mem_log_demo_data
+endif
+
+ifdef UART_FUNCTION
+	4 mem_uart_demo_rx_buff
+	4 mem_uart_demo_tx_buff
+endif	
+	6 mem_le_lap_target
+	
+ifdef P_NEC_DECODE
+	1 mem_nec_receive_flag
+	4 mem_nec_receive_data
+endif	
+)
+
+amemalloc mem_input_store(
+	0 mem_fcc_param_new	
+	1 mem_fcc_ch_new   
+	1 mem_fcc_mod_new 
+	1 mem_fcc_txrx_new 
+	1 mem_fcc_btble_new  
+	1 mem_fcc_data_new  
+	1 mem_fcc_data_length_new    
+	1 mem_fcc_hop_new    
+	1 mem_fcc_tx_power_new
+
+	0 mem_fcc_param
+	1 mem_fcc_ch                    /*frequence set: default:0x00(2402Mhz); frequence = 2402MHz + mem_fcc_ch*/
+	1 mem_fcc_mod                 /*data rate:default:0x01(1Mbps) */
+	1 mem_fcc_txrx                  /*tx rx mode select:tx: 01; rx:02*/
+	1 mem_fcc_btble                /*BT and BLE select: BT3.0:01; BLE:02*/
+	1 mem_fcc_data                 /*carrier: 0x22; data: 0*/
+	1 mem_fcc_data_length     /*DH1:0x19; DH3:0x78; DH5:0xf0*/
+	1 mem_fcc_hop                  /*fixed freq:0x02; hop freq:0x01*/
+	1 mem_fcc_tx_power         /*同mem_tx_power*/
+
+	2 mem_fcc_config_cb
+
+)
+
+
+
+
+(
+256 ZCODE_BUFF_SIZE
+64 ZCODE_CODE_SIZE
+0xff ZCODE_FLAG
+)
+
+(
+3 ICE_BONDING
+)
+
+(
+/*
+uart的缓存池，一般无需更改
+*/
+0x0a00 mem_uart_rx_buffer
+0x0aff mem_uart_rx_buffer_end
+0x0b00 mem_uart_tx_buffer
+0x0bff mem_uart_tx_buffer_end
+)
+(
+8 UART_RX_LEN
+8 UART_TX_LEN
+)
+(
+/*
+uart config
+*/
+7 UART_RX_GPIO
+11 UART_TX_GPIO
+)
+
+(
+127 LOGGING_DEMO_LEN  /*只是需要打印数据的字节数*/
+0x0001 LOGGING_DEMO_TYPE
+)
+
+/*adc config*/
+(
+0 ADC_CHANNEL  /*GPIO03*/
+//1 ADC_CHANNEL  /*GPIO04*/
+//2 ADC_CHANNEL  /*GPIO05*/
+//3 ADC_CHANNEL  /*GPIO06*/
+//4 ADC_CHANNEL  /*GPIO08*/
+//5 ADC_CHANNEL  /*GPIO09*/
+//6 ADC_CHANNEL  /*GPIO10*/
+//7 ADC_CHANNEL  /*GPIO11*/
+)
+
+(
+0x09 TX_POWER_9DB
+)

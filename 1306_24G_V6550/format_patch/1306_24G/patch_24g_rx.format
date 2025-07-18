@@ -1,0 +1,23 @@
+
+
+ifdef G24_RX
+xmemalloc g24_rx_car(
+	2 mem_le_24g_rx_last
+	1 mem_le_24g_rx_recv_flag
+	1 mem_le_24g_rx_enable
+)
+endif
+(
+1 CMD_G24ACK_DISABLE
+)
+
+(
+3 LEN_OF_ACK_PAYLOAD
+)
+//logging type
+(
+0 LOGGING_TYPE_24G_RX
+1 LOGGING_TYPE_24G_RECV_ACK
+)
+
+

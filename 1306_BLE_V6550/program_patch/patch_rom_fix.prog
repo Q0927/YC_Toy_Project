@@ -1,0 +1,73 @@
+	
+p_initialize_radio_cont:
+	jam 0x10,0x896f
+	call initialize_radio_cont+1
+	jam 0,core_syn_loopdiv_dsm_cfg
+	jam 0x03,core_rx_lna_cfg3
+	jam 0x20,core_rf_ldo_cfg1
+	
+	jam 0x28,core_tx_mixer_cfg1
+	jam 0x3f,core_tx_mixer_cfg2
+	rtn
+	
+
+p_txon:
+	fetch 1,mem_tx_power
+	beq TX_POWER_3DB,p_set_tx_power_3db
+	beq TX_POWER_6DB,p_set_tx_power_6db
+	beq TX_POWER_9DB,p_set_tx_power_9db
+	beq TX_POWER_F5DB,p_set_tx_power_f5db
+	beq TX_POWER_F20DB,p_set_tx_power_f20db
+	beq TX_POWER_F30DB,p_set_tx_power_f30db
+p_set_tx_power_0db:
+	jam 0x8a,core_tx_pwr_ctrl0
+	jam 0x0f,core_tx_pwr_ctrl1
+	jam 0x2c,core_tx_pwr_ctrl2
+	jam 0x17,core_tx_pwr_ctrl3
+p_set_rf_ldo_cfg89:
+	jam 0xaa,core_rf_ldo_cfg8
+	jam 0x0a,core_rf_ldo_cfg9
+	rtn
+	
+p_set_tx_power_3db:
+	jam 0x8a,core_tx_pwr_ctrl0
+	jam 0x0f,core_tx_pwr_ctrl1
+	jam 0x48,core_tx_pwr_ctrl2
+	jam 0x17,core_tx_pwr_ctrl3
+	branch p_set_rf_ldo_cfg89
+
+p_set_tx_power_6db:
+	jam 0xc9,core_tx_pwr_ctrl0
+	jam 0x0f,core_tx_pwr_ctrl1
+	jam 0x70,core_tx_pwr_ctrl2
+	jam 0x1f,core_tx_pwr_ctrl3
+	branch p_set_rf_ldo_cfg89
+
+p_set_tx_power_9db:
+	jam 0xcd,core_tx_pwr_ctrl0
+	jam 0x0f,core_tx_pwr_ctrl1
+	jam 0x70,core_tx_pwr_ctrl2
+	jam 0x1f,core_tx_pwr_ctrl3
+	branch p_set_rf_ldo_cfg89
+
+p_set_tx_power_f5db:
+	jam 0x8a,core_tx_pwr_ctrl0
+	jam 0x0f,core_tx_pwr_ctrl1
+p_set_tx_pwr_ctrl23:
+	jam 0x18,core_tx_pwr_ctrl2
+	jam 0x0f,core_tx_pwr_ctrl3
+	jam 0xa3,core_rf_ldo_cfg8
+	jam 0x0a,core_rf_ldo_cfg9
+	rtn
+
+p_set_tx_power_f20db:
+	jam 0x85,core_tx_pwr_ctrl0
+	jam 0x04,core_tx_pwr_ctrl1
+	branch p_set_tx_pwr_ctrl23
+
+p_set_tx_power_f30db:
+	jam 0x83,core_tx_pwr_ctrl0
+	jam 0x02,core_tx_pwr_ctrl1
+	branch p_set_tx_pwr_ctrl23	
+
+	

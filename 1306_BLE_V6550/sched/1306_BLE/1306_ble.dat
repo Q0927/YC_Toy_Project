@@ -1,0 +1,100 @@
+
+
+mem_device_option:0b
+
+mem_le_adv_channel_map:07
+
+
+mem_le_scan_enable:
+00   #scan enable
+0a 00  #scan interval
+08 00  #scan window
+
+mem_le_adv_enable:
+01
+mem_le_adv_interval:10 00
+
+#mem_iic_test_txbuf2:aa aa aa aa aa aa aa aa 
+#mem_iic_test_txbuf1:ff ff ff ff ff ff ff ff
+
+
+
+##############BLUETOOTH CONFIG##############
+mem_lpm_mode:00
+#mem_lpm_interval:00 01    #unit: 0.625ms
+mem_lpm_overhead:08   
+mem_lpm_mult:05
+mem_lpm_mult_timeout:02
+
+mem_le_lap_target:81 31 20 98 07 aa
+mem_le_lap:11 22 c3 d4 c5 d6
+mem_le_name_len:
+'Yichip 1306 le
+
+mem_le_adv_data_len:03
+mem_le_adv_data:
+02 01 0e
+
+mem_le_interval_min:
+08 00 #min interval
+10 00 #max interval
+00 00 #latency
+2c 01 #timeout
+
+
+mem_queue_ptr: mem_le_queue_each_size
+
+mem_le_queue_each_size:
+14     #queue 的单个元素的长度
+04     #queue 的队列长度
+00     #queue current num
+00     #queue read ptr
+00     #queue write ptr
+
+
+#####################################
+
+
+mem_ui_le_uuid_table:mem_ble_att_list
+
+#attribute list: handle 2bytes, uuid 2bytes, length 1bytes, attribute Nbytes
+mem_ble_att_list:
+#Primary service yichip transmit ------
+01 00 02 00 28 02 01 18   #0x1801 GATT Service------Generic Access<16-bit UUID Numbers Document.pdf>
+#Service Changed
+02 00 02 03 28 01 20    #0x20 properties------notify
+03 00 02 05 2a 01 00
+#Client Characteristic Configuration
+04 00 02 02 29 02 01 00
+
+#Primary service GAP ------
+05 00 02 00 28 02 00 18
+
+#Device name
+06 00 02 03 28 01 4e
+07 00 02 00 2a 13 41 73 74 20 4c 45 20 4d 6f 75 73 65 20 20 20 20 20 20 20
+
+#Apperance
+08 00 02 03 28 01 4e
+09 00 02 01 2a 02 00 00
+
+#Perpheral Preferred Connection Parameters
+0a 00 02 03 28 01 02
+0b 00 02 04 2a 08 10 00 20 00 05 00 2c 01
+
+#Primary service yichip transmit ------
+0c 00 02 00 28 02 f0 ff
+
+#Characteristic tx--notify&read
+0d 00 02 03 28 01 12
+0e 00 02 f1 ff 04 00 00 00 00
+#Client Characteristic Configuration
+0f 00 02 02 29 02 00 00
+#Characteristic rx--write
+10 00 02 03 28 01 08
+11 00 02 f2 ff 01 00
+00 00   
+
+
+
+

@@ -1,0 +1,34 @@
+
+
+mem_device_option: 0b
+
+mem_tx_power: 00
+#0x00 TX_POWER_0DB
+#0x03 TX_POWER_3DB
+#0x06 TX_POWER_6DB
+#0x09 TX_POWER_9DB
+#0x85 TX_POWER_F5DB
+#0x94 TX_POWER_F20DB
+#0x9e TX_POWER_F30DB
+
+
+mem_24g_tx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_rx_phy:01
+#Bit rate
+#0x01:1M
+#0x02:2M
+#0x04:S2, 500K
+#0x84:S8, 125K
+
+mem_24g_ch:20
+#2402Mhz + mem_24g_ch
+
+
+mem_24g_addr:11 22 33 44
+

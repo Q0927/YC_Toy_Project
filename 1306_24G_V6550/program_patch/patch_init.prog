@@ -1,0 +1,54 @@
+
+
+p_app_init_clear_memalloc:
+	arg mem_memalloc_start, contw
+	arg mem_memalloc_start, temp
+	arg mem_memalloc_end, pdata
+	isub temp, loopcnt
+	branch clear_mem
+
+p_mesh_iic_init:
+//	jam 0,0x8081
+	jam gpcfg_output_high,core_gpio_conf+2
+	jam gpcfg_iic_scl|gpcfg_pullup,core_gpio_conf+1
+	jam gpcfg_iic_sda|gpcfg_pullup,core_gpio_conf+0
+	branch clear_eeprom_size_2k	
+
+
+p_app_init:
+//	setarg mem_context
+//	call ice_set_write_bp
+	call wdt_set_disable
+	call p_app_init_clear_memalloc
+ifdef P_EEPROM_DEMO
+	call p_mesh_iic_init
+endif
+
+ifdef P_EEPROM_DEMO
+	setarg 0x112233
+	store 3,mem_eeprom_demo
+	arg mem_eeprom_demo, rega
+	arg 0, regb
+	arg 3, temp
+	call iicd_write_protect_eep_data
+
+	arg mem_eeprom_demo, rega
+	arg 0, regb
+	arg 3, temp
+	call iicd_read_eep_data	
+endif
+
+ifdef P_TIMER_DEMO
+	call p_timer_demo_init
+endif	
+ifdef P_LPM
+	call p_lpm_lpm_gpio_config_flag_init
+endif
+
+ifdef P_ADC_ENABLE
+    	 jam ADC_CONFIG_GPIO_H, mem_adc_config_flag
+        jam ADC_CHANNEL, mem_adc_channel
+endif
+
+	branch p_app_init_ext
+

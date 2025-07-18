@@ -1,0 +1,49 @@
+
+
+	bbit1 8,pf_patch_ext
+	beq patch02_7,p_txon
+	beq patch03_0,p_initialize_radio_cont
+	beq patch0e_0,p_app_init	
+	branch p_patch
+
+pf_patch_ext:
+	rtneq patch3f_7
+	branch p_patch_ext
+
+p_idle_process:	
+
+ifdef P_TIMER_DEMO
+	call p_timer_demo_625us
+endif
+
+ifdef P_ADC_ENABLE
+	call enable_adc
+       call adc_calculate
+       store 2, mem_adc_voltage_result    //sample:0x5a0(decimal: 1440).It means that voltage is 1.44V.
+endif
+
+ifdef P_LPM
+ 	call p_app_enter_lpm
+endif
+ifdef FCC_AUTH
+	jam 23, mem_fcc_ch   //选择频点:frequence = 2402MHz + mem_fcc_ch 
+	jam FCC_TX, mem_fcc_txrx  //选择收发模式:发射模式(FCC_TX); 接收模式(FCC_RX) 
+	jam FCC_DATA, mem_fcc_data    //选择测试模式:发射载波(FCC_CARRIER); 发射数据/调制波(FCC_DATA)
+	jam TX_POWER_0DB, mem_fcc_tx_power //选择发射功率 
+	call fcc_auth_config
+	
+	setarg p_fcc_para_config_cb   //需要动态调整认证的功能的代码可以写在这里，如按键切换频点等。
+	store 2, mem_fcc_config_cb
+endif
+	branch p_idle_process_ext
+
+
+
+p_cb_event_timer:
+ifdef P_TIMER_DEMO
+	call p_100ms_timer_demo
+	call p_100ms_timer_demo2
+endif
+	branch p_cb_event_timer_ext
+	
+

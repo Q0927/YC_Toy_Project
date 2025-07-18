@@ -1,0 +1,22 @@
+
+p_patch:
+	branch assert
+
+p_patch_ext:
+
+	branch assert
+
+p_idle_process_ext:
+ifdef P_BLE_NOTIFY
+	call p_ble_send_notify_data_set
+	call p_ble_send_notify
+endif	
+	rtn
+
+p_cb_event_timer_ext:
+	rtn
+
+
+
+
+

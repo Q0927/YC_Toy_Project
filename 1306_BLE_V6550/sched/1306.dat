@@ -1,0 +1,35 @@
+
+mem_lpm_config:88 1f ca	#4khz
+mem_lpm_xtalcnt:70 3f 0c 33 03
+mem_lpm_ctrl3_aon_vsel:9d 10 22
+mem_lpm_hibernate_switch:00
+mem_xtal_freq:18
+
+mem_fcomp_div:18
+
+mem_rc_cal:d3
+mem_rf_ldo_cfg1:02
+mem_syn_afc_cfg1:29
+mem_dig_aon_vsel:01	#bit5-4;00:1.2V;01:1.08V;02:0.96V;03:0.84V
+
+mem_gain_fix:ff	#00:soft agc; ff:hw agc
+mem_gain_table:88 66 44
+mem_gain_second_agc_en:00	#hw agc: 0:second agc disable
+
+mem_rx_window_sniff:00 0c
+mem_adc_delay:a0 0f
+
+mem_version:09 0e 05 05 00
+mem_seqi:7f
+
+
+mem_rf_init_data:
+ff
+mem_rf_init_ptr:mem_rf_init_data
+
+mem_load_check_sum:5a
+
+
+
+
+

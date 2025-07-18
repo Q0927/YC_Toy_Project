@@ -1,0 +1,11 @@
+define DEBUG_RF_INIT
+define SECURE_CONNECTION
+define SIMPLE_PAIRING
+define REVD
+define ROMCODE
+define PATCH
+define SDKCODE
+ifdef SDKCODE
+INCLUDE "bt_format"
+org 0x0000  // start from patch ram address start
+endif

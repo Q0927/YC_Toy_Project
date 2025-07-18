@@ -1,0 +1,23 @@
+
+
+
+xmemalloc g24_car(
+1 mem_le_queue_each_size
+1 mem_le_queue_length
+1 mem_le_queue_current_num
+1 mem_le_queue_read_ptr
+1 mem_le_queue_write_ptr
+80 mem_le_queue_ele
+20 mem_ble_notify_data
+6 mem_ble_write_data
+1 mem_ble_notify_enable
+)
+
+
+(
+0x0e HANDLE_OF_NOTIFY
+0x11 HANDLE_OF_WRITE
+
+6 LEN_OF_NOTIFY_DATA      //MAX: 20, data range:1~20
+)
+

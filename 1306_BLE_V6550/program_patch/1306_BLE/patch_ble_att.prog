@@ -1,0 +1,148 @@
+
+
+
+p_le_scan:
+	call p_anchor_protect_check
+	rtn user
+	call p_conn_event_check
+	rtn user
+	branch le_scan+1
+	
+
+p_anchor_protect_check:
+	call disable_user
+	fetch 1, mem_le_state
+	and pdata, 0x03, pdata
+	sub pdata, 3, null
+	nrtn zero
+	fetch 1,mem_le_state
+	rtnbit1 lestate_got_first_packet
+	branch enable_user
+	
+
+p_conn_event_check:
+	fetcht 2,mem_le_scan_window
+	arg 4,queue
+	branch sniff_check_window
+
+
+p_le_send_adv_ind:
+	jam 0x42, mem_le_txheader
+	jam 3, mem_le_adv_data_len
+	jam 2,mem_le_adv_data
+	jam 1,mem_le_adv_data+1
+	jam 2,mem_le_adv_data+2
+	branch le_send_adv_ind+8
+
+
+
+p_le_scan_patch:
+
+	rtn
+
+p_process_bb_event:
+	deposit regc
+	beq BT_EVT_LE_CONNECTED, p_ble_connted
+	beq BT_EVT_LE_DISCONNECTED, p_ble_disconnted
+//	beq BT_EVT_LE_PARSE_CONN_PAPA_UPDATE_RSP, p_parse_conn_para_update_rsp
+	rtn
+/*
+mem_le_l2cap_signaling_conn_param_update_rsp_result:
+2Bytes 手机回复的结果，其中
+BLE_SIGNALING_CONNECT_PARAMETER_UPDATE_ACCEPTED代表手机接受参数更新
+BLE_SIGNALING_CONNECT_PARAMETER_UPDATE_REJECTED代表手机拒绝参数更新
+*/
+//p_parse_conn_para_update_rsp:
+//	fetch 2, mem_le_l2cap_signaling_conn_param_update_rsp_result
+//	rtn
+
+p_ble_disconnted:
+	call queue_init
+	branch app_ble_start_adv
+
+p_ble_connted:
+	branch app_lpm_mult_enable
+
+ifdef P_BLE_WRITE
+/* rega is pointer to data, regb is length */
+p_ble_receive_data:
+	fetch 2,mem_le_att_handle
+	beq HANDLE_OF_WRITE,p_ble_receive_writeatt
+	rtn
+	
+/* rega is pointer to data, regb is length */
+p_ble_receive_writeatt:
+	copy regb, loopcnt
+	copy rega, contr
+	arg mem_ble_write_data, contw   //demo 中mem_ble_write_data只申请了6字节，可自行调整
+	branch memcpy
+	
+endif	
+
+ifdef P_BLE_NOTIFY
+
+//demo
+p_ble_send_notify_data_set:
+	fetch 1, mem_ble_notify_enable
+	rtn blank
+	jam 0, mem_ble_notify_enable
+	fetch 1, mem_ble_notify_data
+	pincrease 1
+	store 1, mem_ble_notify_data
+
+	arg mem_ble_notify_data, rega
+	branch queue_push
+
+p_ble_send_notify:
+	fetch 2,mem_ui_state_map
+	rtnbit0 UI_STATE_BLE_CONNECTED
+	call le_fifo_check_nearly_full
+	nrtn blank
+	arg mem_ble_notify_data, rega
+	call queue_pop
+	nrtn user    //rtn, if queue is empty.
+	arg LEN_OF_NOTIFY_DATA, rega
+	arg HANDLE_OF_NOTIFY, temp
+	call le_att_malloc_tx_notify
+	arg LEN_OF_NOTIFY_DATA, loopcnt
+	arg mem_ble_notify_data, contr
+	branch memcpy
+endif
+
+
+/*
+function:
+CONNECTION PARAMETER UPDATE REQUEST
+connIntervalMin = Interval Min * 1.25 ms. Interval Min range: 6 to 3200 frames.Interval Min shall be less than or equal to Interval Max.
+connIntervalMax = Interval Max * 1.25 ms. Interval Max range: 6 to 3200 frames.
+connSlaveLatency = Slave Latency.The Slave Latency field shall have a value in the range of 0 to ((connSupervisionTimeout / (connIntervalMax*2)) -1).
+connSupervisionTimeout = Timeout Multiplier * 10 ms. The Timeout Multiplier field shall have a value in the range of 10 to 3200.
+
+note:
+connIntervalMin为要请求的最小连接间隔，connIntervalMax为要请求的最大连接间隔，这两个值配成一样就行了。
+connSlaveLatency为我们的设备可以连续多少次不接受手机发送的数据包。配0即可。
+connSupervisionTimeout为连接超时时间。当手机或者我们的设备超过这个时间没有再收到数据，就断开连接。
+
+调用这个接口即可向主机请求更新连接参数。不过建议等连上蓝牙要等一会儿再更新参数，因为刚连上的时候
+本来就会有一些默认参数要设置。可以写个定时器，比如1s后，再发起请求更新参数。
+p_conn_para_update_request为请求连接间隔50ms,超时断联时间为3s的例程，connSlaveLatency默认给0。
+*/
+//p_conn_para_update_request:
+//	setarg 12                                       
+//	store 2, mem_le_interval_min       //connIntervalMin = 40 * 1.25ms = 50ms
+//	setarg 12
+//	istore 2,  contw                              //connIntervalMax = 40 * 1.25ms = 50ms
+//	setarg 0 
+//	istore 2,  contw                              //connSlaveLatency:0
+//	setarg 300                                     //connSupervisionTimeout = 300 * 10ms = 3s
+//	istore 2, contw	
+//	branch le_l2cap_tx_update_req
+
+
+
+
+
+
+
+
+

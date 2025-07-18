@@ -1,0 +1,199 @@
+              include "bt_format "
+              org 0x0000
+0000 c2840005 bbit1 8 ,pf_patch_ext 
+0001 c00b8023 beq patch02_7 ,p_txon 
+0002 c00c001b beq patch03_0 ,p_initialize_radio_cont 
+0003 c0380012 beq patch0e_0 ,p_app_init 
+0004 2020004d branch p_patch 
+
+pf_patch_ext:
+0005 c17f8000 rtneq patch3f_7 
+0006 2020004e branch p_patch_ext 
+
+p_idle_process:
+0007 2020004f branch p_idle_process_ext 
+
+p_cb_event_timer:
+0008 20200050 branch p_cb_event_timer_ext 
+
+p_app_init_clear_memalloc:
+0009 d8a0055e arg mem_memalloc_start ,contw 
+000a d840055e arg mem_memalloc_start ,temp 
+000b dfe0055e arg mem_memalloc_end ,pdata 
+000c 98467200 isub temp ,loopcnt 
+000d 202073ec branch clear_mem 
+
+p_mesh_iic_init:
+000e 7080723f jam gpcfg_output_high ,core_gpio_conf + 2 
+000f 7080716c jam gpcfg_iic_scl | gpcfg_pullup ,core_gpio_conf + 1 
+0010 7080706d jam gpcfg_iic_sda | gpcfg_pullup ,core_gpio_conf + 0 
+0011 20206a3c branch clear_eeprom_size_2k 
+
+p_app_init:
+0012 20406d31 call wdt_set_disable 
+0013 20400009 call p_app_init_clear_memalloc 
+0014 2020006f branch p_app_init_ext 
+
+p_gpio_config_output:
+0015 79400407 setflip 7 ,temp 
+0016 20206b96 branch gpio_config_output 
+
+p_pwm_disable:
+0017 6ff0809a fetch 1 ,core_pwm_en 
+0018 f93ffe00 qset0 pdata 
+0019 67f0809a store 1 ,core_pwm_en 
+001a 20600000 rtn 
+
+p_initialize_radio_cont:
+001b 70896f10 jam 0x10 ,0x896f 
+001c 20403a1e call initialize_radio_cont + 1 
+001d 708a8500 jam 0 ,core_syn_loopdiv_dsm_cfg 
+001e 708a7503 jam 0x03 ,core_rx_lna_cfg3 
+001f 708a0d20 jam 0x20 ,core_rf_ldo_cfg1 
+0020 708a9a28 jam 0x28 ,core_tx_mixer_cfg1 
+0021 708a9b3f jam 0x3f ,core_tx_mixer_cfg2 
+0022 20600000 rtn 
+
+p_txon:
+0023 6fe0c116 fetch 1 ,mem_tx_power 
+0024 c0018031 beq tx_power_3db ,p_set_tx_power_3db 
+0025 c0030036 beq tx_power_6db ,p_set_tx_power_6db 
+0026 c004803b beq tx_power_9db ,p_set_tx_power_9db 
+0027 c0428040 beq tx_power_f5db ,p_set_tx_power_f5db 
+0028 c04a0047 beq tx_power_f20db ,p_set_tx_power_f20db 
+0029 c04f004a beq tx_power_f30db ,p_set_tx_power_f30db 
+
+p_set_tx_power_0db:
+002a 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+002b 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+002c 708a3b2c jam 0x2c ,core_tx_pwr_ctrl2 
+002d 708a3c17 jam 0x17 ,core_tx_pwr_ctrl3 
+
+p_set_rf_ldo_cfg89:
+002e 708a14aa jam 0xaa ,core_rf_ldo_cfg8 
+002f 708a150a jam 0x0a ,core_rf_ldo_cfg9 
+0030 20600000 rtn 
+
+p_set_tx_power_3db:
+0031 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+0032 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+0033 708a3b48 jam 0x48 ,core_tx_pwr_ctrl2 
+0034 708a3c17 jam 0x17 ,core_tx_pwr_ctrl3 
+0035 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_6db:
+0036 708a39c9 jam 0xc9 ,core_tx_pwr_ctrl0 
+0037 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+0038 708a3b70 jam 0x70 ,core_tx_pwr_ctrl2 
+0039 708a3c1f jam 0x1f ,core_tx_pwr_ctrl3 
+003a 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_9db:
+003b 708a39cd jam 0xcd ,core_tx_pwr_ctrl0 
+003c 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+003d 708a3b70 jam 0x70 ,core_tx_pwr_ctrl2 
+003e 708a3c1f jam 0x1f ,core_tx_pwr_ctrl3 
+003f 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_f5db:
+0040 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+0041 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+
+p_set_tx_pwr_ctrl23:
+0042 708a3b18 jam 0x18 ,core_tx_pwr_ctrl2 
+0043 708a3c0f jam 0x0f ,core_tx_pwr_ctrl3 
+0044 708a14a3 jam 0xa3 ,core_rf_ldo_cfg8 
+0045 708a150a jam 0x0a ,core_rf_ldo_cfg9 
+0046 20600000 rtn 
+
+p_set_tx_power_f20db:
+0047 708a3985 jam 0x85 ,core_tx_pwr_ctrl0 
+0048 708a3a04 jam 0x04 ,core_tx_pwr_ctrl1 
+0049 20200042 branch p_set_tx_pwr_ctrl23 
+
+p_set_tx_power_f30db:
+004a 708a3983 jam 0x83 ,core_tx_pwr_ctrl0 
+004b 708a3a02 jam 0x02 ,core_tx_pwr_ctrl1 
+004c 20200042 branch p_set_tx_pwr_ctrl23 
+
+p_patch:
+004d 20203a8a branch assert 
+
+p_patch_ext:
+004e 20203a8a branch assert 
+
+p_idle_process_ext:
+004f 20600000 rtn 
+
+p_cb_event_timer_ext:
+0050 20600000 rtn 
+
+p_le_scan:
+0051 20400056 call p_anchor_protect_check 
+0052 20740000 rtn user 
+0053 2040005e call p_conn_event_check 
+0054 20740000 rtn user 
+0055 202041f0 branch le_scan + 1 
+
+p_anchor_protect_check:
+0056 204074ca call disable_user 
+0057 6fe08163 fetch 1 ,mem_le_state 
+0058 1fe17e03 and pdata ,0x03 ,pdata 
+0059 1fe67c03 sub pdata ,3 ,null 
+005a 24628000 nrtn zero 
+005b 6fe08163 fetch 1 ,mem_le_state 
+005c c3818000 rtnbit1 lestate_got_first_packet 
+005d 202074c8 branch enable_user 
+
+p_conn_event_check:
+005e 6849431d fetcht 2 ,mem_le_scan_window 
+005f d8e00004 arg 4 ,queue 
+0060 202038d8 branch sniff_check_window 
+
+p_le_send_adv_ind:
+0061 70412b42 jam 0x42 ,mem_le_txheader 
+0062 70431f03 jam 3 ,mem_le_adv_data_len 
+0063 70432002 jam 2 ,mem_le_adv_data 
+0064 70432101 jam 1 ,mem_le_adv_data + 1 
+0065 70432202 jam 2 ,mem_le_adv_data + 2 
+0066 202042a7 branch le_send_adv_ind + 8 
+
+p_le_scan_patch:
+0067 20600000 rtn 
+
+p_process_bb_event:
+0068 1a627e00 deposit regc 
+0069 c00a006e beq bt_evt_le_connected ,p_ble_connted 
+006a c00a806c beq bt_evt_le_disconnected ,p_ble_disconnted 
+006b 20600000 rtn 
+
+p_ble_disconnted:
+006c 20406ff8 call queue_init 
+006d 20204e03 branch app_ble_start_adv 
+
+p_ble_connted:
+006e 20204e17 branch app_lpm_mult_enable 
+
+p_app_init_ext:
+006f 58000007 setarg p_idle_process 
+0070 67e14394 store 2 ,mem_cb_idle_process 
+0071 58000008 setarg p_cb_event_timer 
+0072 67e1439c store 2 ,mem_cb_event_timer 
+0073 58000068 setarg p_process_bb_event 
+0074 67e14396 store 2 ,mem_cb_bb_event_process 
+0075 58003c18 setarg lpm_write_gpio_wakeup 
+0076 67e143a2 store 2 ,mem_cb_before_lpm_sleep 
+0077 204040f6 call le_modified_name 
+0078 2040007a call p_le_param_init 
+0079 20206ff8 branch queue_init 
+
+p_le_param_init:
+007a 7042b617 jam 0x17 ,mem_le_local_mtu 
+007b 5800001b setarg 0x1b 
+007c 67e14307 store 2 ,mem_le_pairing_handle 
+007d 20404167 call le_set_config_fixed_ltk 
+007e 20404183 call le_set_fixed_ltk 
+007f 20404190 call le_set_justwork 
+0080 2020416f branch le_set_config_read_authentication 
+0081 20600000 rtn 
+

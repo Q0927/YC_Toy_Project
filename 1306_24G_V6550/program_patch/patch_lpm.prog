@@ -1,0 +1,58 @@
+
+
+ifdef P_LPM
+/*
+不需要下拉的IO,将mem_light_lpm_gpio_config_flag对应bit置1.
+0x80008(gpio19和gpio03为ice脚)是必须要上拉的bit位
+*/
+p_lpm_lpm_gpio_config_flag_init:
+	setarg 0x2000
+        store 4, mem_light_lpm_gpio_config_flag
+        rtn
+
+
+
+p_app_enter_lpm:	
+	call p_enter_lpm_gpio_config
+	call p_wakeup_config
+//	call ice_break
+	
+	arg -1,temp
+       branch lpm_sleep
+/*
+睡眠前把未使用的IO全部下拉。
+不需要下拉的IO,将mem_light_lpm_gpio_config_flag对应bit置1.
+*/
+p_enter_lpm_gpio_config:
+         arg 14, loopcnt
+         jam 0, mem_light_lpm_gpio_config_io_temp   //从gpio3开始配置，gpio0,1,2为iic脚，无需配置
+p_enter_lpm_gpio_config_loopcnt:
+         fetcht 1, mem_light_lpm_gpio_config_io_temp
+         copy temp, queue
+         fetch 4, mem_light_lpm_gpio_config_flag    //为1上拉
+         qisolate1 pdata
+         branch p_enter_lpm_gpio_config_pull_up, true
+         or temp, 0x80, temp
+  
+p_enter_lpm_gpio_config_pull_up: 
+
+         call gpio_config_input
+         fetch 1, mem_light_lpm_gpio_config_io_temp
+         pincrease 1
+         store 1, mem_light_lpm_gpio_config_io_temp
+         loop p_enter_lpm_gpio_config_loopcnt
+         rtn
+
+
+	
+p_wakeup_config:
+	setarg 0
+	store 8, mem_gpio_wakeup_low
+	setarg 0x2000	   //0x8008是为了让ice能唤醒芯片
+	store 4, mem_gpio_wakeup_low
+	rtn
+
+	
+endif
+
+

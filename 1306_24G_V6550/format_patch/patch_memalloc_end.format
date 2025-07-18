@@ -1,0 +1,14 @@
+
+/*
+此文件不用来申请变量
+*/
+memalloc g24_rx_car(
+    0 mem_memalloc_end
+)
+
+
+
+
+
+
+

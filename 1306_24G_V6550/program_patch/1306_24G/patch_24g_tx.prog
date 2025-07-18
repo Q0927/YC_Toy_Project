@@ -1,0 +1,93 @@
+
+
+ifdef G24_TX
+g24_sim_tx_with_datalen_set:	
+	fetch 1, mem_le_24g_tx_enable
+	rtn blank
+	set0 mark_24g_rxmode,mark
+ifndef G24_ACK_DISABLE
+	setarg 0x2ee0    //1ms
+	store 2, mem_24g_rx_window //unit:1/12us
+endif
+	jam 2, mem_24g_datalen
+	branch g24_sim_tx
+
+
+/*
+input:
+mem_24g_datalen
+mem_24g_txbuf
+*/
+g24_sim_tx:
+	fetch 1,mem_24g_tx_phy
+	call le_enable_phy_by_pdata
+	call g24_syncword_crc8
+	jam 0x88,mem_rssi_hex
+//	call ice_break
+	call g24_transmit_prep
+	call g24_transmit_receive_ack
+	call g24_end_of_packet
+	fetch 1,mem_24g_no_ack	//tx noack
+	beq no_ack_24g,p_g24_transmit_no_ack
+	nbranch p_g24_transmit_no_ack, user3    //if(user3 == 0) means a invaild packet.
+	nbranch p_g24_transmit_no_ack,sync
+	call p_24g_recved_ack
+p_g24_transmit_no_ack:	
+	random pdata 
+	arg 0x1ff,temp
+	iand temp,pdata
+	add pdata,250,pdata
+	branch delay
+
+
+p_24g_recved_ack:
+	jam 1, mem_le_24g_recv_ack_flag
+	rtn
+
+g24_recved_ack_parse:
+	fetch 1, mem_le_24g_recv_ack_flag
+	rtn blank
+	jam 0, mem_le_24g_recv_ack_flag
+ifdef DBG_LOG_TX	
+	call p_24g_recv_ack_log
+endif
+	rtn
+
+
+
+
+	
+p_24g_tx_state_timer_init:
+	setarg 10
+	store 2, mem_le_24g_tx_state_timeout
+	rtn
+
+p_24g_tx_state_timer:
+	arg mem_le_24g_tx_state_timeout,regc
+	arg p_24g_tx_state_timeout, regb
+	branch timer_single_step_2B
+p_24g_tx_state_timeout:
+	call p_24g_tx_state_timer_init
+	jam 2, mem_24g_datalen	
+
+	fetch 1, mem_le_24g_tx_enable
+	beq 1, p_24g_tx_disable
+	jam 1, mem_le_24g_tx_enable
+	fetch 2, mem_24g_txbuf
+	pincrease 1
+	store 2, mem_24g_txbuf
+	rtn	
+
+p_24g_tx_disable:	
+	jam 0, mem_le_24g_tx_enable
+	rtn
+	
+
+endif
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+
+
+p_app_init_ext:
+	
+//******************************************************//
+	setarg p_idle_process
+	store 2,mem_cb_idle_process
+
+	setarg p_cb_event_timer
+	store 2,mem_cb_event_timer
+
+ifdef P_BLE_WRITE
+	//Att write callback function
+	setarg p_ble_receive_data
+	store 2,mem_cb_att_write
+endif	
+
+	//BLE evt handle callback
+	setarg p_process_bb_event 
+	store 2,mem_cb_bb_event_process
+
+	setarg lpm_write_gpio_wakeup
+	store 2,mem_cb_before_lpm_sleep
+
+//******************************************************//	
+	call le_modified_name
+	call p_le_param_init
+	branch  queue_init
+
+p_le_param_init:
+	//////////////////MTU/////////////
+	jam 0x17,mem_le_local_mtu
+	////////////////justwork/////////
+	setarg 0x1b
+ 	store 2,mem_le_pairing_handle
+ 	call le_set_config_fixed_ltk
+	call le_set_fixed_ltk
+	call le_set_justwork
+	branch le_set_config_read_authentication	
+	rtn
+
+
+		
+

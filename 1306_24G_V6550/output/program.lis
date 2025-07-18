@@ -1,0 +1,212 @@
+              include "bt_format "
+              org 0x0000
+0000 c2840005 bbit1 8 ,pf_patch_ext 
+0001 c00b8023 beq patch02_7 ,p_txon 
+0002 c00c001b beq patch03_0 ,p_initialize_radio_cont 
+0003 c0380012 beq patch0e_0 ,p_app_init 
+0004 2020004d branch p_patch 
+
+pf_patch_ext:
+0005 c17f8000 rtneq patch3f_7 
+0006 2020004e branch p_patch_ext 
+
+p_idle_process:
+0007 2020004f branch p_idle_process_ext 
+
+p_cb_event_timer:
+0008 20200052 branch p_cb_event_timer_ext 
+
+p_app_init_clear_memalloc:
+0009 d8a0055e arg mem_memalloc_start ,contw 
+000a d840055e arg mem_memalloc_start ,temp 
+000b dfe0055e arg mem_memalloc_end ,pdata 
+000c 98467200 isub temp ,loopcnt 
+000d 202073ec branch clear_mem 
+
+p_mesh_iic_init:
+000e 7080723f jam gpcfg_output_high ,core_gpio_conf + 2 
+000f 7080716c jam gpcfg_iic_scl | gpcfg_pullup ,core_gpio_conf + 1 
+0010 7080706d jam gpcfg_iic_sda | gpcfg_pullup ,core_gpio_conf + 0 
+0011 20206a3c branch clear_eeprom_size_2k 
+
+p_app_init:
+0012 20406d31 call wdt_set_disable 
+0013 20400009 call p_app_init_clear_memalloc 
+0014 20200082 branch p_app_init_ext 
+
+p_gpio_config_output:
+0015 79400407 setflip 7 ,temp 
+0016 20206b96 branch gpio_config_output 
+
+p_pwm_disable:
+0017 6ff0809a fetch 1 ,core_pwm_en 
+0018 f93ffe00 qset0 pdata 
+0019 67f0809a store 1 ,core_pwm_en 
+001a 20600000 rtn 
+
+p_initialize_radio_cont:
+001b 70896f10 jam 0x10 ,0x896f 
+001c 20403a1e call initialize_radio_cont + 1 
+001d 708a8500 jam 0 ,core_syn_loopdiv_dsm_cfg 
+001e 708a7503 jam 0x03 ,core_rx_lna_cfg3 
+001f 708a0d20 jam 0x20 ,core_rf_ldo_cfg1 
+0020 708a9a28 jam 0x28 ,core_tx_mixer_cfg1 
+0021 708a9b3f jam 0x3f ,core_tx_mixer_cfg2 
+0022 20600000 rtn 
+
+p_txon:
+0023 6fe0c116 fetch 1 ,mem_tx_power 
+0024 c0018031 beq tx_power_3db ,p_set_tx_power_3db 
+0025 c0030036 beq tx_power_6db ,p_set_tx_power_6db 
+0026 c004803b beq tx_power_9db ,p_set_tx_power_9db 
+0027 c0428040 beq tx_power_f5db ,p_set_tx_power_f5db 
+0028 c04a0047 beq tx_power_f20db ,p_set_tx_power_f20db 
+0029 c04f004a beq tx_power_f30db ,p_set_tx_power_f30db 
+
+p_set_tx_power_0db:
+002a 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+002b 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+002c 708a3b2c jam 0x2c ,core_tx_pwr_ctrl2 
+002d 708a3c17 jam 0x17 ,core_tx_pwr_ctrl3 
+
+p_set_rf_ldo_cfg89:
+002e 708a14aa jam 0xaa ,core_rf_ldo_cfg8 
+002f 708a150a jam 0x0a ,core_rf_ldo_cfg9 
+0030 20600000 rtn 
+
+p_set_tx_power_3db:
+0031 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+0032 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+0033 708a3b48 jam 0x48 ,core_tx_pwr_ctrl2 
+0034 708a3c17 jam 0x17 ,core_tx_pwr_ctrl3 
+0035 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_6db:
+0036 708a39c9 jam 0xc9 ,core_tx_pwr_ctrl0 
+0037 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+0038 708a3b70 jam 0x70 ,core_tx_pwr_ctrl2 
+0039 708a3c1f jam 0x1f ,core_tx_pwr_ctrl3 
+003a 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_9db:
+003b 708a39cd jam 0xcd ,core_tx_pwr_ctrl0 
+003c 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+003d 708a3b70 jam 0x70 ,core_tx_pwr_ctrl2 
+003e 708a3c1f jam 0x1f ,core_tx_pwr_ctrl3 
+003f 2020002e branch p_set_rf_ldo_cfg89 
+
+p_set_tx_power_f5db:
+0040 708a398a jam 0x8a ,core_tx_pwr_ctrl0 
+0041 708a3a0f jam 0x0f ,core_tx_pwr_ctrl1 
+
+p_set_tx_pwr_ctrl23:
+0042 708a3b18 jam 0x18 ,core_tx_pwr_ctrl2 
+0043 708a3c0f jam 0x0f ,core_tx_pwr_ctrl3 
+0044 708a14a3 jam 0xa3 ,core_rf_ldo_cfg8 
+0045 708a150a jam 0x0a ,core_rf_ldo_cfg9 
+0046 20600000 rtn 
+
+p_set_tx_power_f20db:
+0047 708a3985 jam 0x85 ,core_tx_pwr_ctrl0 
+0048 708a3a04 jam 0x04 ,core_tx_pwr_ctrl1 
+0049 20200042 branch p_set_tx_pwr_ctrl23 
+
+p_set_tx_power_f30db:
+004a 708a3983 jam 0x83 ,core_tx_pwr_ctrl0 
+004b 708a3a02 jam 0x02 ,core_tx_pwr_ctrl1 
+004c 20200042 branch p_set_tx_pwr_ctrl23 
+
+p_patch:
+004d 20203a8a branch assert 
+
+p_patch_ext:
+004e 20203a8a branch assert 
+
+p_idle_process_ext:
+004f 20400055 call g24_sim_tx_with_datalen_set 
+0050 2040006d call g24_recved_ack_parse 
+0051 20600000 rtn 
+
+p_cb_event_timer_ext:
+0052 20400074 call p_24g_tx_state_timer 
+0053 20600000 rtn 
+
+p_fcc_para_config_cb:
+0054 20600000 rtn 
+
+g24_sim_tx_with_datalen_set:
+0055 6fe0cac9 fetch 1 ,mem_le_24g_tx_enable 
+0056 207a0000 rtn blank 
+0057 793f8027 set0 mark_24g_rxmode ,mark 
+0058 7044d302 jam 2 ,mem_24g_datalen 
+0059 2020005a branch g24_sim_tx 
+
+g24_sim_tx:
+005a 6fe0c503 fetch 1 ,mem_24g_tx_phy 
+005b 20403ce0 call le_enable_phy_by_pdata 
+005c 204048b1 call g24_syncword_crc8 
+005d 70003088 jam 0x88 ,mem_rssi_hex 
+005e 2040485e call g24_transmit_prep 
+005f 20404cb0 call g24_transmit_receive_ack 
+0060 204047fc call g24_end_of_packet 
+0061 6fe0c4ca fetch 1 ,mem_24g_no_ack 
+0062 c0008066 beq no_ack_24g ,p_g24_transmit_no_ack 
+0063 24378066 nbranch p_g24_transmit_no_ack ,user3 
+0064 242c0066 nbranch p_g24_transmit_no_ack ,sync 
+0065 2040006b call p_24g_recved_ack 
+
+p_g24_transmit_no_ack:
+0066 180a7e00 random pdata 
+0067 d84001ff arg 0x1ff ,temp 
+0068 98417e00 iand temp ,pdata 
+0069 1fe0fefa add pdata ,250 ,pdata 
+006a 202073d4 branch delay 
+
+p_24g_recved_ack:
+006b 704ac801 jam 1 ,mem_le_24g_recv_ack_flag 
+006c 20600000 rtn 
+
+g24_recved_ack_parse:
+006d 6fe0cac8 fetch 1 ,mem_le_24g_recv_ack_flag 
+006e 207a0000 rtn blank 
+006f 704ac800 jam 0 ,mem_le_24g_recv_ack_flag 
+0070 20600000 rtn 
+
+p_24g_tx_state_timer_init:
+0071 5800000a setarg 10 
+0072 67e14aca store 2 ,mem_le_24g_tx_state_timeout 
+0073 20600000 rtn 
+
+p_24g_tx_state_timer:
+0074 da604aca arg mem_le_24g_tx_state_timeout ,regc 
+0075 da400077 arg p_24g_tx_state_timeout ,regb 
+0076 20204dd3 branch timer_single_step_2b 
+
+p_24g_tx_state_timeout:
+0077 20400071 call p_24g_tx_state_timer_init 
+0078 7044d302 jam 2 ,mem_24g_datalen 
+0079 6fe0cac9 fetch 1 ,mem_le_24g_tx_enable 
+007a c0008080 beq 1 ,p_24g_tx_disable 
+007b 704ac901 jam 1 ,mem_le_24g_tx_enable 
+007c 6fe14464 fetch 2 ,mem_24g_txbuf 
+007d 1fe0fe01 pincrease 1 
+007e 67e14464 store 2 ,mem_24g_txbuf 
+007f 20600000 rtn 
+
+p_24g_tx_disable:
+0080 704ac900 jam 0 ,mem_le_24g_tx_enable 
+0081 20600000 rtn 
+
+p_app_init_ext:
+0082 58000007 setarg p_idle_process 
+0083 67e14394 store 2 ,mem_cb_idle_process 
+0084 58000008 setarg p_cb_event_timer 
+0085 67e1439c store 2 ,mem_cb_event_timer 
+0086 58003c18 setarg lpm_write_gpio_wakeup 
+0087 67e143a2 store 2 ,mem_cb_before_lpm_sleep 
+0088 58000054 setarg p_fcc_para_config_cb 
+0089 67e101ef store 2 ,mem_fcc_config_cb 
+008a 7044ca01 jam cmd_g24ack_disable ,mem_24g_no_ack 
+008b 20400071 call p_24g_tx_state_timer_init 
+008c 20600000 rtn 
+

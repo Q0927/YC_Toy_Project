@@ -1,0 +1,59 @@
+
+
+p_gpio_config_output:
+	setflip 7, temp
+	branch gpio_config_output
+
+
+p_pwm_disable:
+	fetch 1,core_pwm_en
+   	qset0 pdata
+   	store 1,core_pwm_en
+	rtn
+
+
+ifdef ICE_FUNCTION
+lpm_write_ice_disable: 
+	fetch 2,core_ucode_flag
+	set0 lpmreg_ice_mode_bit,pdata 
+	store 4,core_lpm_reg 
+	branch lpm_write2_ctrl_option
+
+lpm_write_ice_enable:
+	fetch 2,core_ucode_flag 
+	set1 lpmreg_ice_mode_bit,pdata 
+	store 4,core_lpm_reg 
+	branch lpm_write2_ctrl_option
+endif
+
+	
+
+ifdef WATCH_DOG_ENABLE
+/*
+看门狗一共12bit，0x8004为高8bit，0x800b为低4bit。先使能再喂狗
+input:temp,unit:7.8125ms, max : 0x7ff
+
+例:
+//初始化时调用使能
+call wdt_set_enable
+
+//喂狗
+arg 1, temp
+call p_wdt_init_config
+*/
+p_wdt_init_config:
+	setarg 0x7ff
+	iand temp, temp
+	deposit temp
+	rtn blank
+	setarg 0x800
+	isub temp, pdata
+	rshift4 pdata, temp
+	storet 1, 0x8004
+	nop 1440
+	and pdata, 0x0f, pdata
+	store 1, 0x800b
+	rtn
+endif
+
+
